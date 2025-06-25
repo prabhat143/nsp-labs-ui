@@ -1,11 +1,19 @@
+export interface Customer {
+  id: string;
+  name: string;
+  phoneNumber: string;
+  location: string;
+}
+
 export interface User {
   id: string;
-  email: string;
   name: string;
+  email: string;
+  createdAt: string;
   company?: string;
   phone?: string;
   address?: string;
-  createdAt: string;
+  customers?: Customer[]; // Add this line to your User interface
 }
 
 export interface Sample {

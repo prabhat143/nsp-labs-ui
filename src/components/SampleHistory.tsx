@@ -9,7 +9,8 @@ import {
   TestTube, 
   CheckCircle,
   Eye,
-  Calendar
+  Calendar,
+  FileText
 } from 'lucide-react';
 
 const SampleHistory: React.FC = () => {

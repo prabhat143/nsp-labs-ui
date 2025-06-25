@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getSamples, saveSamples } from '../utils/localStorage';
+import { getSamples, saveSamples, updateSampleStatus, getRandomAgent, createTestReport } from '../utils/localStorage';
 import { Sample } from '../types';
-import { Upload, MapPin, Tag, Users, CheckCircle } from 'lucide-react';
+import { Upload, MapPin, Tag, Users, CheckCircle, Clock, UserCheck, FlaskConical } from 'lucide-react';
 
 const SubmitSample: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
   const [submittedSample, setSubmittedSample] = useState<Sample | null>(null);
+  const [progressStage, setProgressStage] = useState<'submitted' | 'agent-assigned' | 'testing' | 'completed'>('submitted');
+  const [assignedAgent, setAssignedAgent] = useState<string>('');
   
   const [formData, setFormData] = useState({
     location: '',
@@ -46,6 +48,38 @@ const SubmitSample: React.FC = () => {
     'Post-Larvae',
   ];
 
+  // Auto-progression effect
+  useEffect(() => {
+    if (!submitted || !submittedSample) return;
+
+    const timers: NodeJS.Timeout[] = [];
+
+    // Stage 1: Agent assignment after 30 seconds
+    timers.push(setTimeout(() => {
+      const agent = getRandomAgent();
+      setAssignedAgent(agent);
+      setProgressStage('agent-assigned');
+      updateSampleStatus(submittedSample.id, 'agent-assigned', agent);
+    }, 30000)); // 30 seconds
+
+    // Stage 2: Testing starts after 1 minute
+    timers.push(setTimeout(() => {
+      setProgressStage('testing');
+      updateSampleStatus(submittedSample.id, 'testing');
+    }, 60000)); // 1 minute
+
+    // Stage 3: Testing completes after 2 minutes
+    timers.push(setTimeout(() => {
+      setProgressStage('completed');
+      updateSampleStatus(submittedSample.id, 'completed');
+      createTestReport(submittedSample);
+    }, 120000)); // 2 minutes
+
+    return () => {
+      timers.forEach(timer => clearTimeout(timer));
+    };
+  }, [submitted, submittedSample]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -66,6 +100,7 @@ const SubmitSample: React.FC = () => {
     
     setSubmittedSample(newSample);
     setSubmitted(true);
+    setProgressStage('submitted');
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -75,16 +110,69 @@ const SubmitSample: React.FC = () => {
     });
   };
 
+  const getStageIcon = (stage: string) => {
+    switch (stage) {
+      case 'submitted':
+        return <Clock className="h-6 w-6 text-yellow-600" />;
+      case 'agent-assigned':
+        return <UserCheck className="h-6 w-6 text-blue-600" />;
+      case 'testing':
+        return <FlaskConical className="h-6 w-6 text-purple-600" />;
+      case 'completed':
+        return <CheckCircle className="h-6 w-6 text-green-600" />;
+      default:
+        return <Clock className="h-6 w-6 text-gray-600" />;
+    }
+  };
+
+  const getStageMessage = (stage: string) => {
+    switch (stage) {
+      case 'submitted':
+        return 'Sample submitted successfully! Waiting for agent assignment...';
+      case 'agent-assigned':
+        return `Agent ${assignedAgent} has been assigned to your sample. Testing will begin shortly.`;
+      case 'testing':
+        return 'Laboratory testing is now in progress. This may take some time.';
+      case 'completed':
+        return 'Testing completed! Your results are now available.';
+      default:
+        return 'Processing your sample...';
+    }
+  };
+
   if (submitted && submittedSample) {
     return (
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              {getStageIcon(progressStage)}
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Sample Submitted Successfully!</h1>
-            <p className="text-gray-600">Your shrimp sample has been received and is awaiting agent assignment.</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Sample Processing</h1>
+            <p className="text-gray-600">{getStageMessage(progressStage)}</p>
+          </div>
+
+          {/* Progress Timeline */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium text-gray-500">Progress</span>
+              <span className="text-sm font-medium text-gray-500">
+                {progressStage === 'submitted' && '25%'}
+                {progressStage === 'agent-assigned' && '50%'}
+                {progressStage === 'testing' && '75%'}
+                {progressStage === 'completed' && '100%'}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full transition-all duration-1000 ${
+                  progressStage === 'submitted' ? 'bg-yellow-500 w-1/4' :
+                  progressStage === 'agent-assigned' ? 'bg-blue-500 w-1/2' :
+                  progressStage === 'testing' ? 'bg-purple-500 w-3/4' :
+                  'bg-green-500 w-full'
+                }`}
+              />
+            </div>
           </div>
 
           <div className="bg-gray-50 rounded-xl p-6 mb-8 space-y-4">
@@ -114,37 +202,91 @@ const SubmitSample: React.FC = () => {
                 </div>
               )}
               <div>
-                <span className="text-sm font-medium text-gray-500">Status</span>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                  Waiting for agent assignment
+                <span className="text-sm font-medium text-gray-500">Current Status</span>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  progressStage === 'submitted' ? 'bg-yellow-100 text-yellow-800' :
+                  progressStage === 'agent-assigned' ? 'bg-blue-100 text-blue-800' :
+                  progressStage === 'testing' ? 'bg-purple-100 text-purple-800' :
+                  'bg-green-100 text-green-800'
+                }`}>
+                  {progressStage === 'submitted' && 'Waiting for assignment'}
+                  {progressStage === 'agent-assigned' && 'Agent assigned'}
+                  {progressStage === 'testing' && 'Testing in progress'}
+                  {progressStage === 'completed' && 'Testing complete'}
                 </span>
               </div>
             </div>
+
+            {assignedAgent && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <UserCheck className="h-5 w-5 text-blue-600" />
+                  <span className="font-medium text-blue-900">Assigned Agent: {assignedAgent}</span>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
-            <h3 className="font-semibold text-blue-900 mb-2">What happens next?</h3>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• An NSP Labs agent will be assigned to your sample within 24 hours</li>
-              <li>• You'll receive email notifications at each stage of testing</li>
-              <li>• The complete testing process typically takes 3-5 business days</li>
-              <li>• Results will be available in your Reports section upon completion</li>
+          <div className={`border rounded-lg p-4 mb-8 ${
+            progressStage === 'completed' ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'
+          }`}>
+            <h3 className={`font-semibold mb-2 ${
+              progressStage === 'completed' ? 'text-green-900' : 'text-blue-900'
+            }`}>
+              {progressStage === 'completed' ? 'Testing Complete!' : 'What happens next?'}
+            </h3>
+            <ul className={`text-sm space-y-1 ${
+              progressStage === 'completed' ? 'text-green-700' : 'text-blue-700'
+            }`}>
+              {progressStage === 'completed' ? (
+                <>
+                  <li>• Your test results are now available in the Reports section</li>
+                  <li>• You can view detailed analysis and certification information</li>
+                  <li>• Download or print your official test report</li>
+                </>
+              ) : (
+                <>
+                  <li>• {progressStage === 'submitted' ? 'An NSP Labs agent will be assigned within 30 seconds' : '✓ Agent assigned'}</li>
+                  <li>• {['submitted', 'agent-assigned'].includes(progressStage) ? 'Laboratory testing will begin shortly' : '✓ Testing in progress'}</li>
+                  <li>• You'll receive updates as testing progresses</li>
+                  <li>• Results will be available upon completion</li>
+                </>
+              )}
             </ul>
           </div>
 
           <div className="flex space-x-4">
-            <button
-              onClick={() => navigate('/samples')}
-              className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 px-6 rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-colors font-medium"
-            >
-              View All Samples
-            </button>
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex-1 border border-gray-300 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-            >
-              Back to Dashboard
-            </button>
+            {progressStage === 'completed' ? (
+              <>
+                <button
+                  onClick={() => navigate('/reports')}
+                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-6 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-colors font-medium"
+                >
+                  View Test Results
+                </button>
+                <button
+                  onClick={() => navigate('/samples')}
+                  className="flex-1 border border-gray-300 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  View All Samples
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => navigate('/samples')}
+                  className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 px-6 rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-colors font-medium"
+                >
+                  View All Samples
+                </button>
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="flex-1 border border-gray-300 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Back to Dashboard
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -256,7 +398,7 @@ const SubmitSample: React.FC = () => {
             <ul className="text-sm text-yellow-800 space-y-1">
               <li>• Ensure samples are properly preserved and labeled before submission</li>
               <li>• Testing typically takes 3-5 business days to complete</li>
-              <li>• You will receive email notifications throughout the testing process</li>
+              <li>• You will receive real-time updates throughout the testing process</li>
               <li>• Contact information is used for urgent communications only</li>
             </ul>
           </div>

@@ -274,28 +274,26 @@ const Profile: React.FC = () => {
     }
   }, [editingCustomer]);
 
-    
-
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+    <div className="max-w-4xl mx-auto space-y-6 lg:space-y-8">
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-cyan-500 to-blue-500 px-8 py-6">
-          <div className="flex items-center justify-between">
+        <div className="bg-gradient-to-r from-cyan-500 to-blue-500 px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                <User className="h-8 w-8 text-white" />
+              <div className="w-12 h-12 lg:w-16 lg:h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                <User className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">
+                <h1 className="text-xl lg:text-2xl font-bold text-white">
                   Customer Profile
                 </h1>
-                <p className="text-cyan-100">Manage your account information</p>
+                <p className="text-cyan-100 text-sm lg:text-base">Manage your account information</p>
               </div>
             </div>
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 self-start sm:self-auto"
             >
               <Edit className="h-4 w-4" />
               <span>{isEditing ? "Cancel" : "Edit Profile"}</span>
@@ -304,9 +302,9 @@ const Profile: React.FC = () => {
         </div>
 
         {/* Content */}
-        <div className="p-8">
+        <div className="p-6 lg:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Full Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -424,16 +422,16 @@ const Profile: React.FC = () => {
             </div>
 
             {/* Account Info */}
-            <div className="bg-gray-50 rounded-lg p-6">
+            <div className="bg-gray-50 rounded-lg p-4 lg:p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Account Information
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium text-gray-700">
                     Customer ID:
                   </span>
-                  <span className="ml-2 text-gray-900">{user?.id}</span>
+                  <span className="ml-2 text-gray-900 break-all">{user?.id}</span>
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">
@@ -450,7 +448,7 @@ const Profile: React.FC = () => {
 
             {/* Save Button */}
             {isEditing && (
-              <div className="flex justify-end space-x-4">
+              <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
                 <button
                   type="button"
                   onClick={handleCancel}
@@ -460,7 +458,7 @@ const Profile: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-colors flex items-center space-x-2"
+                  className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-colors flex items-center justify-center space-x-2"
                 >
                   <Save className="h-4 w-4" />
                   <span>Save Changes</span>
@@ -470,24 +468,25 @@ const Profile: React.FC = () => {
           </form>
         </div>
       </div>
+      
       {/* Customer Management Section */}
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-500 px-8 py-6">
-          <div className="flex items-center justify-between">
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-500 px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                <Users className="h-8 w-8 text-white" />
+              <div className="w-12 h-12 lg:w-16 lg:h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                <Users className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">My Customers</h1>
-                <p className="text-indigo-100">
+                <h1 className="text-xl lg:text-2xl font-bold text-white">My Customers</h1>
+                <p className="text-indigo-100 text-sm lg:text-base">
                   Manage your customer information
                 </p>
               </div>
             </div>
             <button
               onClick={() => setShowAddCustomer(!showAddCustomer)}
-              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 self-start sm:self-auto"
             >
               <Plus className="h-4 w-4" />
               <span>{showAddCustomer ? "Cancel" : "Add Customer"}</span>
@@ -495,10 +494,10 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-8">
+        <div className="p-6 lg:p-8">
           {/* Add Customer Form */}
           {(showAddCustomer || editingCustomerId) && (
-            <div className="mb-8 p-6 border border-indigo-100 bg-indigo-50 rounded-lg">
+            <div className="mb-8 p-4 lg:p-6 border border-indigo-100 bg-indigo-50 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 {editingCustomerId ? "Edit Customer" : "Add New Customer"}
               </h3>
@@ -508,7 +507,7 @@ const Profile: React.FC = () => {
                 }
                 className="space-y-6"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Customer Name */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -560,7 +559,7 @@ const Profile: React.FC = () => {
                 </div>
 
                 {/* Submit Button */}
-                <div className="flex justify-end space-x-4">
+                <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
                   <button
                     type="button"
                     onClick={
@@ -574,7 +573,7 @@ const Profile: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-colors flex items-center space-x-2"
+                    className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-colors flex items-center justify-center space-x-2"
                   >
                     {editingCustomerId ? (
                       <>
@@ -606,11 +605,6 @@ const Profile: React.FC = () => {
                 </p>
               </div>
             ) : (
-                            // Find this section in your Profile.tsx file around line 700
-                            // Replace your existing customer mapping code in the customer list section
-              
-                            // Replace the section where you map over customers
-              
               <div className="divide-y divide-gray-200">
                 {formData.customers.map((customer) => {
                   // Parse the location data if it's in JSON format
@@ -636,14 +630,14 @@ const Profile: React.FC = () => {
                   
                   return (
                     <div key={customer.id} className="py-4">
-                      <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-                        <div className="mb-3 md:mb-0 md:max-w-[60%]"> {/* Added max-width */}
+                      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-3 lg:space-y-0">
+                        <div className="lg:max-w-[60%]">
                           <h4 className="text-md font-medium text-gray-900 mb-1">
                             {customer.name}
                           </h4>
                           {/* Move location to its own block with more space */}
                           <div className="flex flex-col space-y-1">
-                            <p className="text-sm text-gray-500 break-words"> {/* Added break-words */}
+                            <p className="text-sm text-gray-500 break-words">
                               {locationDisplay || "No location specified"}
                             </p>
                             {locationData?.coordinates && (
@@ -658,7 +652,7 @@ const Profile: React.FC = () => {
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                           <div className="flex items-center">
                             <Phone className="h-4 w-4 text-gray-400 mr-1" />
                             <span className="text-sm text-gray-600">

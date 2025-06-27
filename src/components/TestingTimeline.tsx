@@ -132,34 +132,34 @@ const TestingTimeline: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-2xl shadow-lg p-8">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-white rounded-2xl shadow-lg p-6 lg:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
           <button
             onClick={() => navigate('/samples')}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors self-start"
           >
             <ArrowLeft className="h-5 w-5" />
             <span>Back to Samples</span>
           </button>
           
-          <div className="text-right">
+          <div className="text-left sm:text-right">
             <p className="text-sm text-gray-500">Sample ID</p>
-            <p className="font-mono text-lg font-semibold text-gray-900">{sample.id}</p>
+            <p className="font-mono text-base lg:text-lg font-semibold text-gray-900 break-all">{sample.id}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div>
             <h3 className="font-semibold text-gray-900 mb-1">Location</h3>
-            <p className="text-gray-600">{sample.location}</p>
+            <p className="text-gray-600 text-sm">{sample.location}</p>
           </div>
           <div>
             <h3 className="font-semibold text-gray-900 mb-1">Category</h3>
-            <p className="text-gray-600">{sample.category}</p>
+            <p className="text-gray-600 text-sm">{sample.category}</p>
           </div>
           <div>
             <h3 className="font-semibold text-gray-900 mb-1">Submitted</h3>
-            <p className="text-gray-600">{new Date(sample.submittedAt).toLocaleDateString()}</p>
+            <p className="text-gray-600 text-sm">{new Date(sample.submittedAt).toLocaleDateString()}</p>
           </div>
         </div>
 
@@ -167,15 +167,15 @@ const TestingTimeline: React.FC = () => {
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <div className="flex items-center space-x-2">
               <User className="h-5 w-5 text-blue-600" />
-              <span className="font-medium text-blue-900">Assigned Agent: {sample.agentId}</span>
+              <span className="font-medium text-blue-900 text-sm lg:text-base">Assigned Agent: {sample.agentId}</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Timeline */}
-      <div className="bg-white rounded-2xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-8">Testing Progress</h2>
+      <div className="bg-white rounded-2xl shadow-lg p-6 lg:p-8">
+        <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-8">Testing Progress</h2>
         
         <div className="space-y-8">
           {stages.map((stage, index) => {
@@ -210,21 +210,21 @@ const TestingTimeline: React.FC = () => {
 
                   {/* Stage Content */}
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-xl font-semibold text-gray-900">{stage.title}</h3>
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-2">
+                      <h3 className="text-lg lg:text-xl font-semibold text-gray-900">{stage.title}</h3>
                       {status === 'completed' && (
-                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full self-start">
                           Completed
                         </span>
                       )}
                       {status === 'current' && (
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full self-start">
                           In Progress
                         </span>
                       )}
                     </div>
                     
-                    <p className="text-gray-600 mb-4">{stage.description}</p>
+                    <p className="text-gray-600 mb-4 text-sm lg:text-base">{stage.description}</p>
                     
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h4 className="font-medium text-gray-900 mb-2">Stage Activities:</h4>
@@ -249,17 +249,17 @@ const TestingTimeline: React.FC = () => {
 
         {/* Completion Message */}
         {sample.status === 'completed' && (
-          <div className="mt-8 p-6 bg-green-50 border border-green-200 rounded-xl">
+          <div className="mt-8 p-4 lg:p-6 bg-green-50 border border-green-200 rounded-xl">
             <div className="flex items-center space-x-3 mb-3">
               <CheckCircle className="h-6 w-6 text-green-600" />
-              <h3 className="text-lg font-semibold text-green-900">Testing Complete!</h3>
+              <h3 className="text-base lg:text-lg font-semibold text-green-900">Testing Complete!</h3>
             </div>
-            <p className="text-green-700 mb-4">
+            <p className="text-green-700 mb-4 text-sm lg:text-base">
               Your shrimp sample has successfully completed all testing stages. The detailed report is now available.
             </p>
             <button
               onClick={() => navigate('/reports')}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
             >
               View Detailed Report
             </button>

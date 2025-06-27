@@ -143,17 +143,17 @@ const SubmitSample: React.FC = () => {
   if (submitted && submittedSample) {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <div className="text-center mb-8">
+        <div className="bg-white rounded-2xl shadow-lg p-6 lg:p-8">
+          <div className="text-center mb-6 lg:mb-8">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               {getStageIcon(progressStage)}
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Sample Processing</h1>
-            <p className="text-gray-600">{getStageMessage(progressStage)}</p>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Sample Processing</h1>
+            <p className="text-gray-600 text-sm lg:text-base">{getStageMessage(progressStage)}</p>
           </div>
 
           {/* Progress Timeline */}
-          <div className="mb-8">
+          <div className="mb-6 lg:mb-8">
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm font-medium text-gray-500">Progress</span>
               <span className="text-sm font-medium text-gray-500">
@@ -175,30 +175,30 @@ const SubmitSample: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-xl p-6 mb-8 space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Submission Summary</h2>
+          <div className="bg-gray-50 rounded-xl p-4 lg:p-6 mb-6 lg:mb-8 space-y-4">
+            <h2 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4">Submission Summary</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
                 <span className="text-sm font-medium text-gray-500">Sample ID</span>
-                <p className="text-gray-900 font-mono">{submittedSample.id}</p>
+                <p className="text-gray-900 font-mono text-sm lg:text-base break-all">{submittedSample.id}</p>
               </div>
               <div>
                 <span className="text-sm font-medium text-gray-500">Submission Date</span>
-                <p className="text-gray-900">{new Date(submittedSample.submittedAt).toLocaleString()}</p>
+                <p className="text-gray-900 text-sm lg:text-base">{new Date(submittedSample.submittedAt).toLocaleString()}</p>
               </div>
               <div>
                 <span className="text-sm font-medium text-gray-500">Location</span>
-                <p className="text-gray-900">{submittedSample.location}</p>
+                <p className="text-gray-900 text-sm lg:text-base">{submittedSample.location}</p>
               </div>
               <div>
                 <span className="text-sm font-medium text-gray-500">Category</span>
-                <p className="text-gray-900">{submittedSample.category}</p>
+                <p className="text-gray-900 text-sm lg:text-base">{submittedSample.category}</p>
               </div>
               {submittedSample.subCategory && (
                 <div>
                   <span className="text-sm font-medium text-gray-500">Sub-category</span>
-                  <p className="text-gray-900">{submittedSample.subCategory}</p>
+                  <p className="text-gray-900 text-sm lg:text-base">{submittedSample.subCategory}</p>
                 </div>
               )}
               <div>
@@ -221,13 +221,13 @@ const SubmitSample: React.FC = () => {
               <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-center space-x-2">
                   <UserCheck className="h-5 w-5 text-blue-600" />
-                  <span className="font-medium text-blue-900">Assigned Agent: {assignedAgent}</span>
+                  <span className="font-medium text-blue-900 text-sm lg:text-base">Assigned Agent: {assignedAgent}</span>
                 </div>
               </div>
             )}
           </div>
 
-          <div className={`border rounded-lg p-4 mb-8 ${
+          <div className={`border rounded-lg p-4 mb-6 lg:mb-8 ${
             progressStage === 'completed' ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'
           }`}>
             <h3 className={`font-semibold mb-2 ${
@@ -255,7 +255,7 @@ const SubmitSample: React.FC = () => {
             </ul>
           </div>
 
-          <div className="flex space-x-4">
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
             {progressStage === 'completed' ? (
               <>
                 <button
@@ -297,20 +297,20 @@ const SubmitSample: React.FC = () => {
     <div className="max-w-3xl mx-auto">
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-500 to-cyan-500 px-8 py-6">
+        <div className="bg-gradient-to-r from-green-500 to-cyan-500 px-6 lg:px-8 py-6">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-              <Upload className="h-6 w-6 text-white" />
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+              <Upload className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Submit Sample for Testing</h1>
-              <p className="text-green-100">Provide details about your shrimp sample</p>
+              <h1 className="text-xl lg:text-2xl font-bold text-white">Submit Sample for Testing</h1>
+              <p className="text-green-100 text-sm lg:text-base">Provide details about your shrimp sample</p>
             </div>
           </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 lg:p-8 space-y-6">
           {/* Location */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -404,7 +404,7 @@ const SubmitSample: React.FC = () => {
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end space-x-4">
+          <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
             <button
               type="button"
               onClick={() => navigate('/dashboard')}
@@ -414,7 +414,7 @@ const SubmitSample: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="px-8 py-3 bg-gradient-to-r from-green-500 to-cyan-500 text-white rounded-lg hover:from-green-600 hover:to-cyan-600 transition-colors font-medium flex items-center space-x-2"
+              className="px-8 py-3 bg-gradient-to-r from-green-500 to-cyan-500 text-white rounded-lg hover:from-green-600 hover:to-cyan-600 transition-colors font-medium flex items-center justify-center space-x-2"
             >
               <Upload className="h-4 w-4" />
               <span>Submit Sample</span>

@@ -21,14 +21,11 @@ const SubmitSample: React.FC = () => {
   });
 
   const locations = [
-    'Miami Bay Farm #1',
-    'Miami Bay Farm #2', 
-    'Miami Bay Farm #3',
-    'Gulf Coast Farm #1',
-    'Gulf Coast Farm #2',
-    'Atlantic Coast Farm #1',
-    'Pacific Northwest Farm #1',
-    'Caribbean Farm #1',
+    'Suryamitra exim pvt ltd',
+    'Jaylakshmi Marine', 
+    'SRK Aqua',
+    'CYR Marines',
+    'Antibiotic Labs',
   ];
 
   const categories = [

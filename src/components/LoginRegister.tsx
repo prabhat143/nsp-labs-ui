@@ -74,13 +74,6 @@ const LoginRegister: React.FC = () => {
             <p className="text-gray-600">Shrimp Testing Solutions</p>
           </div>
 
-          {/* Demo credentials hint */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
-            <p className="text-sm text-blue-700">
-              <strong>Demo:</strong> Use john@example.com with any password to login
-            </p>
-          </div>
-
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (

@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Fish, Mail, Lock, User, AlertCircle, Menu, X, ChevronRight, TestTube, Droplets, Beaker, Zap } from 'lucide-react';
+import { Fish, Mail, Lock, User, AlertCircle, Menu, X, TestTube, Droplets, Beaker, Zap } from 'lucide-react';
 
 const LoginRegister: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [showLoginDrawer, setShowLoginDrawer] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -140,7 +139,7 @@ const LoginRegister: React.FC = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left Content */}
-            <div className="lg:col-span-8 text-center lg:text-left">
+            <div className="lg:col-span-7 text-center lg:text-left">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 Your Partner in{' '}
                 <span className="bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
@@ -164,115 +163,89 @@ const LoginRegister: React.FC = () => {
             </div>
 
             {/* Right Login Panel */}
-            <div className="lg:col-span-4 flex justify-center lg:justify-end">
-              <div className="relative">
-                {/* Login Tab */}
-                <button
-                  onClick={() => setShowLoginDrawer(!showLoginDrawer)}
-                  onMouseEnter={() => setShowLoginDrawer(true)}
-                  className={`${
-                    showLoginDrawer ? 'opacity-0 pointer-events-none' : 'opacity-100'
-                  } transition-all duration-300 bg-white/90 backdrop-blur-md border border-blue-200 rounded-l-xl px-6 py-4 shadow-lg hover:shadow-xl flex items-center space-x-2 text-gray-700 hover:text-cyan-600`}
-                >
-                  <User className="h-5 w-5" />
-                  <span className="font-medium">Login</span>
-                  <ChevronRight className="h-4 w-4" />
-                </button>
+            <div className="lg:col-span-5 flex justify-center lg:justify-end">
+              <div className="w-full max-w-md bg-white/95 backdrop-blur-xl border border-blue-200 rounded-xl shadow-2xl p-8">
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full mb-3">
+                    <Fish className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">Welcome Back</h3>
+                  <p className="text-gray-600 text-sm">Access your testing dashboard</p>
+                </div>
 
-                {/* Login Drawer */}
-                <div
-                  className={`${
-                    showLoginDrawer ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-                  } transition-all duration-300 absolute right-0 top-0 w-80 bg-white/95 backdrop-blur-xl border border-blue-200 rounded-xl shadow-2xl p-6`}
-                  onMouseLeave={() => setShowLoginDrawer(false)}
-                >
-                  <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full mb-3">
-                      <Fish className="h-6 w-6 text-white" />
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center">
+                      <AlertCircle className="h-4 w-4 text-red-500 mr-2" />
+                      <span className="text-sm text-red-700">{error}</span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900">Welcome Back</h3>
-                    <p className="text-gray-600 text-sm">Access your testing dashboard</p>
+                  )}
+
+                  {!isLogin && (
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                        placeholder="Full name"
+                        required={!isLogin}
+                      />
+                    </div>
+                  )}
+
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                      placeholder="Email address"
+                      required
+                    />
                   </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    {error && (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center">
-                        <AlertCircle className="h-4 w-4 text-red-500 mr-2" />
-                        <span className="text-sm text-red-700">{error}</span>
-                      </div>
-                    )}
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                      placeholder="Password"
+                      required
+                    />
+                  </div>
 
-                    {!isLogin && (
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm"
-                          placeholder="Full name"
-                          required={!isLogin}
-                        />
-                      </div>
-                    )}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 px-4 rounded-lg font-medium hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50"
+                  >
+                    {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
+                  </button>
 
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm"
-                        placeholder="Email address"
-                        required
-                      />
-                    </div>
-
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <input
-                        type="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm"
-                        placeholder="Password"
-                        required
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-2 px-4 rounded-lg font-medium hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 text-sm"
-                    >
-                      {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsLogin(!isLogin);
-                        setError('');
-                        setFormData({ email: '', password: '', name: '' });
-                      }}
-                      className="w-full text-cyan-600 hover:text-cyan-500 font-medium text-sm"
-                    >
-                      {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-                    </button>
-                  </form>
-                </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsLogin(!isLogin);
+                      setError('');
+                      setFormData({ email: '', password: '', name: '' });
+                    }}
+                    className="w-full text-cyan-600 hover:text-cyan-500 font-medium"
+                  >
+                    {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+                  </button>
+                </form>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Background blur overlay when login drawer is open */}
-        {showLoginDrawer && (
-          <div className="absolute inset-0 bg-black/10 backdrop-blur-sm pointer-events-none"></div>
-        )}
       </section>
 
       {/* Services Section */}

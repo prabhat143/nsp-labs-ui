@@ -140,10 +140,10 @@ const LoginRegister: React.FC = () => {
           <div className="w-full max-w-none px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[80vh]">
               
-              {/* Left Content Section - Expanded */}
+              {/* Left Content Section - Normal Text Sizes */}
               <div className="flex flex-col justify-center space-y-8 lg:pr-8">
                 <div className="text-center lg:text-left">
-                  <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-gray-900 mb-8 leading-tight">
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                     Your Partner in{' '}
                     <span className="bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
                       Shrimp Quality
@@ -151,35 +151,35 @@ const LoginRegister: React.FC = () => {
                     & Water Testing
                   </h1>
                   
-                  <p className="text-xl sm:text-2xl lg:text-3xl text-gray-600 mb-12 leading-relaxed max-w-4xl mx-auto lg:mx-0">
+                  <p className="text-lg sm:text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                     Reliable testing for antibiotics, dyes, water, and sodium – certified by experts with cutting-edge laboratory technology.
                   </p>
                   
-                  <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
-                    <button className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-12 py-6 rounded-xl font-semibold text-lg hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <button className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                       Learn More
                     </button>
-                    <button className="border-2 border-cyan-500 text-cyan-600 px-12 py-6 rounded-xl font-semibold text-lg hover:bg-cyan-50 transition-all duration-200 transform hover:-translate-y-1">
+                    <button className="border-2 border-cyan-500 text-cyan-600 px-8 py-3 rounded-lg font-semibold hover:bg-cyan-50 transition-all duration-200 transform hover:-translate-y-1">
                       Request a Test
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Right Login Section - Expanded */}
+              {/* Right Login Section - Expanded and Enhanced */}
               <div className="flex items-center justify-center lg:justify-end h-full">
-                <div className="w-full max-w-lg bg-white/95 backdrop-blur-xl border border-blue-200 rounded-2xl shadow-2xl p-10 lg:p-12">
-                  <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full mb-4">
-                      <Fish className="h-8 w-8 text-white" />
+                <div className="w-full max-w-2xl bg-white/95 backdrop-blur-xl border border-blue-200 rounded-3xl shadow-2xl p-12 lg:p-16">
+                  <div className="text-center mb-10">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full mb-6">
+                      <Fish className="h-10 w-10 text-white" />
                     </div>
-                    <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Welcome Back</h3>
+                    <h3 className="text-3xl font-bold text-gray-900 mb-3">Welcome Back</h3>
                     <p className="text-gray-600 text-lg">Access your testing dashboard</p>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-8">
                     {error && (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
+                      <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center">
                         <AlertCircle className="h-5 w-5 text-red-500 mr-3" />
                         <span className="text-sm text-red-700">{error}</span>
                       </div>
@@ -187,13 +187,13 @@ const LoginRegister: React.FC = () => {
 
                     {!isLogin && (
                       <div className="relative">
-                        <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <User className="absolute left-5 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
                         <input
                           type="text"
                           name="name"
                           value={formData.name}
                           onChange={handleInputChange}
-                          className="w-full pl-12 pr-4 py-4 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
+                          className="w-full pl-14 pr-6 py-5 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
                           placeholder="Full name"
                           required={!isLogin}
                         />
@@ -201,26 +201,26 @@ const LoginRegister: React.FC = () => {
                     )}
 
                     <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Mail className="absolute left-5 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
                       <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="w-full pl-12 pr-4 py-4 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
+                        className="w-full pl-14 pr-6 py-5 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
                         placeholder="Email address"
                         required
                       />
                     </div>
 
                     <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Lock className="absolute left-5 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
                       <input
                         type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className="w-full pl-12 pr-4 py-4 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
+                        className="w-full pl-14 pr-6 py-5 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
                         placeholder="Password"
                         required
                       />
@@ -229,7 +229,7 @@ const LoginRegister: React.FC = () => {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 transform hover:-translate-y-1 shadow-lg hover:shadow-xl"
+                      className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-5 px-6 rounded-xl font-semibold text-lg hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 transform hover:-translate-y-1 shadow-lg hover:shadow-xl"
                     >
                       {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
                     </button>
@@ -241,7 +241,7 @@ const LoginRegister: React.FC = () => {
                         setError('');
                         setFormData({ email: '', password: '', name: '' });
                       }}
-                      className="w-full text-cyan-600 hover:text-cyan-500 font-medium text-lg py-2"
+                      className="w-full text-cyan-600 hover:text-cyan-500 font-medium text-lg py-3"
                     >
                       {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
                     </button>

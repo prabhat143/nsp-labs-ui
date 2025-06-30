@@ -10,6 +10,7 @@ export interface User {
   name: string;
   email: string;
   createdAt: string;
+  updatedAt?: string;
   company?: string;
   phone?: string;
   address?: string;
@@ -50,8 +51,11 @@ export interface TestReport {
 
 export interface AuthContextType {
   user: User | null;
+  loading: boolean;
+  error: string | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, name: string) => Promise<boolean>;
+  register: (email: string, password: string, name: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   logout: () => void;
-  updateUser: (userData: Partial<User>) => void;
+  updateUser: (userData: Partial<User>) => Promise<{ success: boolean; message?: string; error?: string }>;
+  fetchUserProfile: () => Promise<{ success: boolean; message?: string; error?: string }>;
 }

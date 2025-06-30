@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "./Toast";
+import { Customer } from "../types";
 import {
   User,
   Mail,
@@ -11,7 +13,29 @@ import {
   Users,
   Plus,
   Trash2,
+  RefreshCw,
 } from "lucide-react";
+
+// Extend Window interface for Google Maps
+declare global {
+  interface Window {
+    google: any;
+  }
+  namespace google {
+    namespace maps {
+      namespace places {
+        class Autocomplete {
+          constructor(inputElement: HTMLInputElement, options?: any);
+          addListener(eventName: string, callback: () => void): void;
+          getPlace(): any;
+        }
+      }
+      namespace event {
+        function clearInstanceListeners(instance: any): void;
+      }
+    }
+  }
+}
 
 // Define proper types for the component props
 interface LocationAutocompleteProps {
@@ -55,28 +79,30 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({ value, onCh
         }
       );
 
-      autocompleteInstance.addListener("place_changed", () => {
-        const place = autocompleteInstance!.getPlace();
-        if (!place.geometry) return;
+      if (autocompleteInstance) {
+        autocompleteInstance.addListener("place_changed", () => {
+          const place = autocompleteInstance?.getPlace();
+          if (!place?.geometry) return;
 
-        const lat = place.geometry.location.lat();
-        const lng = place.geometry.location.lng();
-        const formattedAddress = place.formatted_address;
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          const formattedAddress = place.formatted_address;
 
-        const exactLocation = JSON.stringify({
-          address: formattedAddress,
-          coordinates: { lat, lng },
-          placeId: place.place_id
+          const exactLocation = JSON.stringify({
+            address: formattedAddress,
+            coordinates: { lat, lng },
+            placeId: place.place_id
+          });
+
+          setInputValue(formattedAddress || "");
+          onChange({
+            target: {
+              name: "location",
+              value: exactLocation
+            },
+          });
         });
-
-        setInputValue(formattedAddress || "");
-        onChange({
-          target: {
-            name: "location",
-            value: exactLocation
-          },
-        });
-      });
+      }
 
       return () => {
         if (autocompleteInstance) {
@@ -109,19 +135,30 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({ value, onCh
 };
 
 const Profile: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, fetchUserProfile } = useAuth();
+  const { showToast, ToastContainer } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [error, setError] = useState<string>('');
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [editingCustomerId, setEditingCustomerId] = useState<string | null>(
     null
   );
-  const [formData, setFormData] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    company: user?.company || "",
-    phone: user?.phone || "",
-    address: user?.address || "",
-    customers: user?.customers || [],
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    company: string;
+    phone: string;
+    address: string;
+    customers: Customer[];
+  }>({
+    name: "",
+    email: "",
+    company: "",
+    phone: "",
+    address: "",
+    customers: [],
   });
 
   const [newCustomer, setNewCustomer] = useState({
@@ -134,10 +171,44 @@ const Profile: React.FC = () => {
     ? formData.customers.find((c) => c.id === editingCustomerId)
     : null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateUser(formData);
-    setIsEditing(false);
+    
+    try {
+      setLoading(true);
+      setError(''); // Clear previous errors
+      
+      const result = await updateUser(formData);
+      
+      if (result.success) {
+        setIsEditing(false);
+        showToast(result.message || 'Profile updated successfully!', 'success');
+      } else {
+        const errorMessage = result.error || 'Failed to update profile';
+        setError(errorMessage);
+        showToast(errorMessage, 'error');
+      }
+    } catch (error: any) {
+      console.error('Profile update error:', error);
+      let errorMessage = 'An unexpected error occurred';
+      
+      if (error.response?.status === 415) {
+        errorMessage = 'Invalid request format. Please check your input.';
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response.data?.error || 'Invalid input data';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'User profile not found';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (
@@ -145,6 +216,13 @@ const Profile: React.FC = () => {
   ) => {
     setFormData({
       ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleCustomerLocationChange = (e: { target: { name: string; value: string } }) => {
+    setNewCustomer({
+      ...newCustomer,
       [e.target.name]: e.target.value,
     });
   };
@@ -189,15 +267,18 @@ const Profile: React.FC = () => {
   };
 
   const handleCancel = () => {
-    setFormData({
-      name: user?.name || "",
-      email: user?.email || "",
-      company: user?.company || "",
-      phone: user?.phone || "",
-      address: user?.address || "",
-      customers: user?.customers || [],
-    });
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        company: user.company || "",
+        phone: user.phone || "",
+        address: user.address || "",
+        customers: user.customers || [],
+      });
+    }
     setIsEditing(false);
+    setError(''); // Clear any errors when canceling
   };
 
   const handleEditCustomer = (customerId: string) => {
@@ -274,6 +355,67 @@ const Profile: React.FC = () => {
     }
   }, [editingCustomer]);
 
+  // Sync formData with user data whenever user changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        company: user.company || "",
+        phone: user.phone || "",
+        address: user.address || "",
+        customers: user.customers || [],
+      });
+    }
+  }, [user]);
+
+  // Fetch user profile on component mount - only once
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user?.id || profileLoading) return;
+      
+      setProfileLoading(true);
+      try {
+        const result = await fetchUserProfile();
+        if (!result.success) {
+          console.warn('Failed to fetch profile from API, using local data:', result.error);
+        }
+      } catch (error) {
+        console.warn('Error fetching profile:', error);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    // Only load profile if we have a user and haven't already loaded
+    if (user?.id && !profileLoading) {
+      loadProfile();
+    }
+  }, []); // Empty dependency array to run only once on mount
+
+  const handleRefreshProfile = async () => {
+    if (!user) return;
+    
+    setProfileLoading(true);
+    setError('');
+    try {
+      const result = await fetchUserProfile();
+      if (result.success) {
+        showToast('Profile refreshed successfully!', 'success');
+        // formData will be updated automatically via the useEffect that watches user changes
+      } else {
+        setError(result.error || 'Failed to refresh profile');
+        showToast(result.error || 'Failed to refresh profile', 'error');
+      }
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to refresh profile';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 lg:space-y-8">
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -291,19 +433,43 @@ const Profile: React.FC = () => {
                 <p className="text-cyan-100 text-sm lg:text-base">Manage your account information</p>
               </div>
             </div>
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 self-start sm:self-auto"
-            >
-              <Edit className="h-4 w-4" />
-              <span>{isEditing ? "Cancel" : "Edit Profile"}</span>
-            </button>
+            <div className="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+              <button
+                onClick={handleRefreshProfile}
+                disabled={profileLoading}
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 self-start sm:self-auto disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw className={`h-4 w-4 ${profileLoading ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </button>
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 self-start sm:self-auto"
+              >
+                <Edit className="h-4 w-4" />
+                <span>{isEditing ? "Cancel" : "Edit Profile"}</span>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Content */}
         <div className="p-6 lg:p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {profileLoading && (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
+              <span className="ml-3 text-gray-600">Loading profile...</span>
+            </div>
+          )}
+
+          {error && !profileLoading && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+          
+          {!profileLoading && (
+            <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Full Name */}
               <div>
@@ -443,6 +609,16 @@ const Profile: React.FC = () => {
                       : "N/A"}
                   </span>
                 </div>
+                {user?.updatedAt && (
+                  <div className="lg:col-span-2">
+                    <span className="font-medium text-gray-700">
+                      Last Updated:
+                    </span>
+                    <span className="ml-2 text-gray-900">
+                      {new Date(user.updatedAt).toLocaleString()}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -458,14 +634,15 @@ const Profile: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-colors flex items-center justify-center space-x-2"
+                  disabled={loading}
+                  className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save className="h-4 w-4" />
-                  <span>Save Changes</span>
+                  <span>{loading ? 'Saving...' : 'Save Changes'}</span>
                 </button>
-              </div>
-            )}
-          </form>
+              </div>              )}
+            </form>
+          )}
         </div>
       </div>
       
@@ -554,7 +731,7 @@ const Profile: React.FC = () => {
                   </label>
                   <LocationAutocomplete
                     value={newCustomer.location}
-                    onChange={handleCustomerInputChange}
+                    onChange={handleCustomerLocationChange}
                   />
                 </div>
 
@@ -685,6 +862,7 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

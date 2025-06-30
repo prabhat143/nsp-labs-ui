@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from './Toast';
 import { Fish, Mail, Lock, User, AlertCircle, Menu, X, TestTube, Droplets, Beaker, Zap } from 'lucide-react';
 
 const LoginRegister: React.FC = () => {
@@ -9,12 +10,13 @@ const LoginRegister: React.FC = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    name: '',
+    fullName: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
   const { login, register } = useAuth();
+  const { showToast, ToastContainer } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,30 +25,41 @@ const LoginRegister: React.FC = () => {
     setLoading(true);
 
     try {
-      let success = false;
-      
       if (isLogin) {
-        success = await login(formData.email, formData.password);
-        if (!success) {
-          setError('Invalid email or password. Try john@example.com with any password.');
+        const success = await login(formData.email, formData.password);
+        if (success) {
+          navigate('/dashboard');
+        } else {
+          setError('Invalid email or password. Please check your credentials and try again.');
         }
       } else {
-        if (!formData.name.trim()) {
+        if (!formData.fullName.trim()) {
           setError('Name is required');
           setLoading(false);
           return;
         }
-        success = await register(formData.email, formData.password, formData.name);
-        if (!success) {
-          setError('Email already exists');
+        
+        const result = await register(formData.email, formData.password, formData.fullName);
+        
+        if (result.success) {
+          // Show success message and switch to login mode
+          setIsLogin(true);
+          setFormData({ email: formData.email, password: '', fullName: '' });
+          setError(''); // Clear any previous errors
+          
+          // Show success toast
+          showToast(result.message || 'Registration successful! Please login with your credentials.', 'success');
+        } else {
+          setError(result.error || 'Registration failed. Please try again.');
         }
       }
-
-      if (success) {
-        navigate('/dashboard');
-      }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      console.error('Authentication error:', err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -190,8 +203,8 @@ const LoginRegister: React.FC = () => {
                         <User className="absolute left-5 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
                         <input
                           type="text"
-                          name="name"
-                          value={formData.name}
+                          name="fullName"
+                          value={formData.fullName}
                           onChange={handleInputChange}
                           className="w-full pl-14 pr-6 py-5 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
                           placeholder="Full name"
@@ -239,7 +252,7 @@ const LoginRegister: React.FC = () => {
                       onClick={() => {
                         setIsLogin(!isLogin);
                         setError('');
-                        setFormData({ email: '', password: '', name: '' });
+                        setFormData({ email: '', password: '', fullName: '' });
                       }}
                       className="w-full text-cyan-600 hover:text-cyan-500 font-medium text-lg py-3"
                     >
@@ -345,6 +358,7 @@ const LoginRegister: React.FC = () => {
           </div>
         </div>
       </footer>
+      <ToastContainer />
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "./Toast";
 import { Customer } from "../types";
+import { apiService } from "../services/api";
 import {
   User,
   Mail,
@@ -140,6 +141,7 @@ const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [customerCoordinates, setCustomerCoordinates] = useState<Record<string, { lat: number; lng: number }>>({});
   const [error, setError] = useState<string>('');
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [editingCustomerId, setEditingCustomerId] = useState<string | null>(
@@ -236,34 +238,84 @@ const Profile: React.FC = () => {
     });
   };
 
-  const handleAddCustomer = (e: React.FormEvent) => {
+  const handleAddCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Add the new customer to the customers array
-    const updatedFormData = {
-      ...formData,
-      customers: [
-        ...formData.customers,
-        {
-          id: Date.now().toString(), // Simple ID generation
-          ...newCustomer,
-        },
-      ],
-    };
+    if (!user?.id) {
+      showToast('User not authenticated', 'error');
+      return;
+    }
 
-    // Update user data with new customer
-    updateUser(updatedFormData);
-    setFormData(updatedFormData);
+    try {
+      setLoading(true);
+      setError('');
 
-    // Reset new customer form
-    setNewCustomer({
-      name: "",
-      phoneNumber: "",
-      location: "",
-    });
+      // Extract location data for API call
+      let locationToSend = newCustomer.location;
+      let fullLocationData = null;
+      
+      try {
+        fullLocationData = JSON.parse(newCustomer.location);
+        locationToSend = fullLocationData.address || newCustomer.location;
+      } catch {
+        // If it's not JSON, use as is
+        locationToSend = newCustomer.location;
+      }
 
-    // Hide the add customer form
-    setShowAddCustomer(false);
+      // Call the API to add sample provider
+      await apiService.addSampleProvider(user.id, {
+        samplerName: newCustomer.name,
+        phoneNumber: newCustomer.phoneNumber,
+        location: locationToSend,
+        coordinates: fullLocationData?.coordinates,
+      });
+
+      // If we have coordinates, store them locally using customer identifiers
+      if (fullLocationData?.coordinates) {
+        const customerKey = `${newCustomer.name}-${newCustomer.phoneNumber}-${locationToSend}`;
+        setCustomerCoordinates(prev => ({
+          ...prev,
+          [customerKey]: fullLocationData.coordinates
+        }));
+      }
+
+      // Refresh the user profile to get updated customer list
+      const result = await fetchUserProfile();
+      if (!result.success) {
+        showToast(result.error || 'Failed to refresh profile after adding customer', 'warning');
+      }
+
+      showToast('Customer added successfully!', 'success');
+
+      // Reset new customer form
+      setNewCustomer({
+        name: "",
+        phoneNumber: "",
+        location: "",
+      });
+
+      // Hide the add customer form
+      setShowAddCustomer(false);
+
+    } catch (error: any) {
+      console.error('Add customer error:', error);
+      let errorMessage = 'Failed to add customer';
+      
+      if (error.response?.status === 400) {
+        errorMessage = error.response.data?.error || 'Invalid input data';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Customer not found';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -290,51 +342,128 @@ const Profile: React.FC = () => {
     setEditingCustomerId(null);
   };
 
-  const handleUpdateCustomer = (e: React.FormEvent) => {
+  const handleUpdateCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Update the customer in the customers array
-    const updatedCustomers = formData.customers.map((customer) =>
-      customer.id === editingCustomerId
-        ? { ...customer, ...newCustomer }
-        : customer
-    );
+    if (!user?.id || !editingCustomerId) {
+      showToast('User not authenticated or no customer selected', 'error');
+      return;
+    }
 
-    const updatedFormData = {
-      ...formData,
-      customers: updatedCustomers,
-    };
+    try {
+      setLoading(true);
+      setError('');
 
-    // Update user data with updated customer
-    updateUser(updatedFormData);
-    setFormData(updatedFormData);
+      // Find the customer being edited and its index
+      const customerIndex = formData.customers.findIndex(customer => customer.id === editingCustomerId);
+      if (customerIndex === -1) {
+        throw new Error('Customer not found');
+      }
 
-    // Reset form and editing state
-    setNewCustomer({
-      name: "",
-      phoneNumber: "",
-      location: "",
-    });
-    setEditingCustomerId(null);
+      // Extract location data for API call
+      let locationToSend = newCustomer.location;
+      let fullLocationData = null;
+      
+      try {
+        // Only try to parse if it looks like JSON (starts with '{')
+        if (newCustomer.location && newCustomer.location.trim().startsWith('{')) {
+          fullLocationData = JSON.parse(newCustomer.location);
+          locationToSend = fullLocationData.address || newCustomer.location;
+        }
+      } catch {
+        // If it's not JSON, use as is
+        locationToSend = newCustomer.location;
+      }
+
+      // Call the API to update sample provider
+      await apiService.updateSampleProvider(user.id, customerIndex, {
+        samplerName: newCustomer.name,
+        phoneNumber: newCustomer.phoneNumber,
+        location: locationToSend,
+        coordinates: fullLocationData?.coordinates,
+      });
+
+      // Store coordinates locally if available
+      if (fullLocationData?.coordinates) {
+        setCustomerCoordinates(prev => ({
+          ...prev,
+          [editingCustomerId]: fullLocationData.coordinates
+        }));
+      }
+
+      // Refresh user profile to get updated data
+      await fetchUserProfile();
+      
+      showToast('Customer updated successfully!', 'success');
+
+      // Reset form and editing state
+      setNewCustomer({
+        name: "",
+        phoneNumber: "",
+        location: "",
+      });
+      setEditingCustomerId(null);
+    } catch (error) {
+      console.error('Error updating customer:', error);
+      setError(error instanceof Error ? error.message : 'Failed to update customer');
+      showToast('Failed to update customer', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteCustomer = (customerId: string) => {
-    const updatedCustomers = formData.customers.filter(
-      (customer) => customer.id !== customerId
-    );
+  const handleDeleteCustomer = async (customerId: string) => {
+    if (!user?.id) {
+      showToast('User not authenticated', 'error');
+      return;
+    }
 
-    const updatedFormData = {
-      ...formData,
-      customers: updatedCustomers,
-    };
+    try {
+      setLoading(true);
+      setError('');
 
-    // Update user data with filtered customers
-    updateUser(updatedFormData);
-    setFormData(updatedFormData);
+      // Find the index of the customer to delete
+      const customerIndex = formData.customers.findIndex(
+        (customer) => customer.id === customerId
+      );
 
-    // If deleting the customer being edited, reset the editing state
-    if (editingCustomerId === customerId) {
-      setEditingCustomerId(null);
+      if (customerIndex === -1) {
+        showToast('Customer not found', 'error');
+        return;
+      }
+
+      // Call the API to delete the sample provider
+      await apiService.deleteSampleProvider(user.id, customerIndex);
+
+      showToast('Customer deleted successfully!', 'success');
+
+      // Refresh the user profile to get the updated data
+      const result = await fetchUserProfile();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to refresh profile after deletion');
+      }
+
+      // If deleting the customer being edited, reset the editing state
+      if (editingCustomerId === customerId) {
+        setEditingCustomerId(null);
+      }
+
+    } catch (error: any) {
+      console.error('Delete customer error:', error);
+      let errorMessage = 'Failed to delete customer';
+      
+      if (error.response?.status === 404) {
+        errorMessage = 'Customer not found or invalid provider index';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error occurred while deleting customer';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -789,17 +918,27 @@ const Profile: React.FC = () => {
                   let locationData = null;
                   
                   try {
-                    locationData = JSON.parse(customer.location);
-                    locationDisplay = locationData.address;
+                    // Only try to parse if it looks like JSON (starts with '{')
+                    if (customer.location && customer.location.trim().startsWith('{')) {
+                      locationData = JSON.parse(customer.location);
+                      locationDisplay = locationData.address;
+                    }
                   } catch (e) {
-                    console.log("Error parsing location:", e);
                     // If it's not valid JSON, just display as is
+                    locationDisplay = customer.location;
                   }
+
+                  // Check if we have stored coordinates for this customer
+                  const customerKey = `${customer.name}-${customer.phoneNumber}-${customer.location}`;
+                  const storedCoordinates = customerCoordinates[customerKey];
+                  
+                  // Use stored coordinates if available, otherwise try parsed coordinates
+                  const coordinates = storedCoordinates || locationData?.coordinates;
                   
                   // Function to open Google Maps with the coordinates
                   const openInGoogleMaps = () => {
-                    if (locationData?.coordinates) {
-                      const { lat, lng } = locationData.coordinates;
+                    if (coordinates) {
+                      const { lat, lng } = coordinates;
                       const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
                       window.open(mapsUrl, '_blank');
                     }
@@ -817,7 +956,7 @@ const Profile: React.FC = () => {
                             <p className="text-sm text-gray-500 break-words">
                               {locationDisplay || "No location specified"}
                             </p>
-                            {locationData?.coordinates && (
+                            {coordinates && (
                               <button 
                                 onClick={openInGoogleMaps}
                                 className="self-start text-xs text-indigo-600 hover:text-indigo-800 flex items-center"

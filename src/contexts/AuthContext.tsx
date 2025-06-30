@@ -269,6 +269,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         address: response.address || '',
         createdAt: response.createdAt,
         updatedAt: response.updatedAt,
+        customers: response.sampleProviders?.map((provider, index) => ({
+          id: `${response.id}-${index}`,
+          name: provider.samplerName,
+          phoneNumber: provider.phoneNumber,
+          location: provider.location,
+        })) || [],
       };
       
       setUser(updatedUser);

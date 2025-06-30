@@ -20,5 +20,8 @@ export const API_ENDPOINTS = {
     LOGIN: '/customers/login',
     UPDATE_PROFILE: (id: string) => `/customers/${id}/profile`,
     GET_PROFILE: (id: string) => `/customers/${id}`,
+    ADD_SAMPLE_PROVIDER: (id: string) => `/customers/${id}/sample-providers`,
+    DELETE_SAMPLE_PROVIDER: (id: string, providerIndex: number) => `/customers/${id}/sample-providers/${providerIndex}`,
+    UPDATE_SAMPLE_PROVIDER: (id: string, providerIndex: number) => `/customers/${id}/sample-providers-simple/${providerIndex}`,
   },
 };

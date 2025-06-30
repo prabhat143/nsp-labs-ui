@@ -1,6 +1,16 @@
 import { getApiConfig, API_ENDPOINTS } from '../config/api';
 import { tokenService } from './tokenService';
 
+export interface SampleProviderRequest {
+  samplerName: string;
+  phoneNumber: string;
+  location: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+}
+
 export interface RegisterRequest {
   fullName: string;
   email: string;
@@ -75,6 +85,46 @@ export interface CustomerProfileResponse {
   company?: string;
   phoneNumber?: string;
   address?: string;
+  sampleProviders?: SampleProvider[];
+}
+
+export interface SampleProvider {
+  samplerName: string;
+  phoneNumber: string;
+  location: string;
+}
+
+export interface AddSampleProviderRequest {
+  samplerName: string;
+  phoneNumber: string;
+  location: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+}
+
+export interface AddSampleProviderResponse {
+  id: string;
+  fullName: string;
+  email: string;
+  password: null;
+  createdAt: string;
+  updatedAt: string;
+  company?: string;
+  phoneNumber?: string;
+  address?: string;
+  sampleProviders: SampleProvider[];
+}
+
+export interface UpdateSampleProviderRequest {
+  samplerName: string;
+  phoneNumber: string;
+  location: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 class ApiService {
@@ -162,6 +212,55 @@ class ApiService {
     return this.makeRequest<CustomerProfileResponse>(API_ENDPOINTS.CUSTOMERS.GET_PROFILE(userId), {
       method: 'GET',
     });
+  }
+
+  async addSampleProvider(userId: string, sampleProviderData: AddSampleProviderRequest): Promise<AddSampleProviderResponse> {
+    const token = tokenService.getToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    return this.makeRequest<AddSampleProviderResponse>(API_ENDPOINTS.CUSTOMERS.ADD_SAMPLE_PROVIDER(userId), {
+      method: 'POST',
+      body: JSON.stringify(sampleProviderData),
+    });
+  }
+
+  async deleteSampleProvider(customerId: string, providerIndex: number): Promise<void> {
+    const token = tokenService.getToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    await this.makeRequest<void>(API_ENDPOINTS.CUSTOMERS.DELETE_SAMPLE_PROVIDER(customerId, providerIndex), {
+      method: 'DELETE',
+    });
+  }
+
+  async updateSampleProvider(userId: string, providerIndex: number, sampleProviderData: UpdateSampleProviderRequest): Promise<AddSampleProviderResponse> {
+    const config = getApiConfig();
+    const endpoint = API_ENDPOINTS.CUSTOMERS.UPDATE_SAMPLE_PROVIDER(userId, providerIndex);
+    const token = tokenService.getToken();
+
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await fetch(`${config.baseURL}${endpoint}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(sampleProviderData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    return response.json();
   }
 }
 

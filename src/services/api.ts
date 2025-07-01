@@ -145,6 +145,7 @@ export interface SampleSubmissionRequest {
   shrimpSubCategory: string;
   phoneNumber: string;
   emailAddress?: string;
+  status: string;
 }
 
 export interface SampleSubmissionResponse {

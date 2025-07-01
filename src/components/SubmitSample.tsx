@@ -278,6 +278,7 @@ const SubmitSample: React.FC = () => {
         shrimpSubCategory: formData.subCategory,
         phoneNumber: formData.phoneNumber,
         emailAddress: formData.email || undefined,
+        status: "PENDING",
       };
 
       // Submit to API

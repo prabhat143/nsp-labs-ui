@@ -55,12 +55,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await apiService.login({ email, password });
       
+      // Debug: Log the actual response structure
+      console.log('Login API Response:', response);
+      console.log('Has customer?', !!response.customer);
+      console.log('Has accessToken?', !!response.accessToken);
+      
+      // Handle different response structures
+      let customer: any, accessToken: string | undefined, expiresIn: number = 3600, tokenType: string = 'Bearer';
+      
+      // Cast response to any to handle different API response structures
+      const anyResponse = response as any;
+      
+      // Check if response has the expected structure
       if (response.customer && response.accessToken) {
+        customer = response.customer;
+        accessToken = response.accessToken;
+        expiresIn = response.expiresIn || 3600;
+        tokenType = response.tokenType || 'Bearer';
+      }
+      // Check if response is the customer object directly (alternative structure)
+      else if (anyResponse.id && anyResponse.email && anyResponse.fullName) {
+        customer = anyResponse;
+        accessToken = anyResponse.token || anyResponse.accessToken;
+        expiresIn = anyResponse.expiresIn || 3600; // default 1 hour
+        tokenType = anyResponse.tokenType || 'Bearer';
+      }
+      // Check if response has a different structure (e.g., { success: true, data: {...}, token: "..." })
+      else if (anyResponse.success && anyResponse.data) {
+        customer = anyResponse.data;
+        accessToken = anyResponse.token || anyResponse.accessToken;
+        expiresIn = anyResponse.expiresIn || 3600;
+        tokenType = anyResponse.tokenType || 'Bearer';
+      }
+      
+      if (customer && accessToken) {
         const user: User = {
-          id: response.customer.id,
-          email: response.customer.email,
-          name: response.customer.fullName,
-          createdAt: response.customer.createdAt,
+          id: customer.id,
+          email: customer.email,
+          name: customer.fullName,
+          createdAt: customer.createdAt,
         };
         
         setUser(user);
@@ -68,13 +101,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         // Save token with expiration
         tokenService.saveToken(
-          response.accessToken, 
-          response.expiresIn, 
-          response.tokenType
+          accessToken, 
+          expiresIn, 
+          tokenType
         );
         
         return true;
       }
+      
+      // Debug: Log why login failed
+      console.log('Login failed - missing required fields in response');
       return false;
     } catch (error: any) {
       console.error('Login failed:', error);

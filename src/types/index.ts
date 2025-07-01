@@ -3,6 +3,10 @@ export interface Customer {
   name: string;
   phoneNumber: string;
   location: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export interface User {

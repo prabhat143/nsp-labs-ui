@@ -89,9 +89,14 @@ export interface CustomerProfileResponse {
 }
 
 export interface SampleProvider {
+  id: string;
   samplerName: string;
   phoneNumber: string;
   location: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export interface AddSampleProviderRequest {
@@ -237,6 +242,17 @@ class ApiService {
     });
   }
 
+  async deleteSampleProviderById(customerId: string, providerId: string): Promise<CustomerProfileResponse> {
+    const token = tokenService.getToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    return this.makeRequest<CustomerProfileResponse>(API_ENDPOINTS.CUSTOMERS.DELETE_SAMPLE_PROVIDER_BY_ID(customerId, providerId), {
+      method: 'DELETE',
+    });
+  }
+
   async updateSampleProvider(userId: string, providerIndex: number, sampleProviderData: UpdateSampleProviderRequest): Promise<AddSampleProviderResponse> {
     const config = getApiConfig();
     const endpoint = API_ENDPOINTS.CUSTOMERS.UPDATE_SAMPLE_PROVIDER(userId, providerIndex);
@@ -261,6 +277,18 @@ class ApiService {
     }
 
     return response.json();
+  }
+
+  async updateSampleProviderById(userId: string, providerId: string, sampleProviderData: UpdateSampleProviderRequest): Promise<CustomerProfileResponse> {
+    const token = tokenService.getToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    return this.makeRequest<CustomerProfileResponse>(API_ENDPOINTS.CUSTOMERS.UPDATE_SAMPLE_PROVIDER_BY_ID(userId, providerId), {
+      method: 'PUT',
+      body: JSON.stringify(sampleProviderData),
+    });
   }
 }
 

@@ -199,6 +199,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         // If no profile data to update, just update locally (for customers array, etc.)
         const updatedUser = { ...user, ...userData };
+        console.log('AuthContext: Updating user with new data, customers:', updatedUser.customers?.length || 0);
         setUser(updatedUser);
         setCurrentUser(updatedUser);
         
@@ -269,11 +270,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         address: response.address || '',
         createdAt: response.createdAt,
         updatedAt: response.updatedAt,
-        customers: response.sampleProviders?.map((provider, index) => ({
-          id: `${response.id}-${index}`,
+        customers: response.sampleProviders?.map((provider) => ({
+          id: provider.id,
           name: provider.samplerName,
           phoneNumber: provider.phoneNumber,
           location: provider.location,
+          coordinates: provider.coordinates,
         })) || [],
       };
       

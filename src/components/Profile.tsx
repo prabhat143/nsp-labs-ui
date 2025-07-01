@@ -263,26 +263,56 @@ const Profile: React.FC = () => {
       }
 
       // Call the API to add sample provider
-      await apiService.addSampleProvider(user.id, {
+      const response = await apiService.addSampleProvider(user.id, {
         samplerName: newCustomer.name,
         phoneNumber: newCustomer.phoneNumber,
         location: locationToSend,
         coordinates: fullLocationData?.coordinates,
       });
 
-      // If we have coordinates, store them locally using customer identifiers
-      if (fullLocationData?.coordinates) {
-        const customerKey = `${newCustomer.name}-${newCustomer.phoneNumber}-${locationToSend}`;
-        setCustomerCoordinates(prev => ({
-          ...prev,
-          [customerKey]: fullLocationData.coordinates
-        }));
+      console.log('Add customer API response:', response);
+
+      // Update user data with the response from the API
+      const newCustomers = response.sampleProviders?.map((provider) => ({
+        id: provider.id,
+        name: provider.samplerName,
+        phoneNumber: provider.phoneNumber,
+        location: provider.location,
+        coordinates: provider.coordinates,
+      })) || [];
+
+      console.log('New customers array:', newCustomers);
+
+      const updatedUser = {
+        ...user,
+        customers: newCustomers,
+      };
+
+      // Update user context and wait for it to complete
+      const updateResult = await updateUser(updatedUser);
+      console.log('UpdateUser result:', updateResult);
+      
+      if (!updateResult.success) {
+        console.warn('Failed to update user context:', updateResult.error);
+        // Even if context update fails, the API call succeeded, so show success
       }
 
-      // Refresh the user profile to get updated customer list
-      const result = await fetchUserProfile();
-      if (!result.success) {
-        showToast(result.error || 'Failed to refresh profile after adding customer', 'warning');
+      // Wait a moment for context to update, then force a formData refresh
+      setTimeout(() => {
+        console.log('Force refreshing formData after add');
+        setFormData(prev => ({
+          ...prev,
+          customers: newCustomers,
+        }));
+      }, 100);
+
+      // If we have coordinates, store them locally using customer ID
+      if (fullLocationData?.coordinates && response.sampleProviders?.length) {
+        const newCustomerId = response.sampleProviders[response.sampleProviders.length - 1].id;
+        setCustomerCoordinates(prev => ({
+          ...prev,
+          [newCustomerId]: fullLocationData.coordinates
+        }));
       }
 
       showToast('Customer added successfully!', 'success');
@@ -354,12 +384,6 @@ const Profile: React.FC = () => {
       setLoading(true);
       setError('');
 
-      // Find the customer being edited and its index
-      const customerIndex = formData.customers.findIndex(customer => customer.id === editingCustomerId);
-      if (customerIndex === -1) {
-        throw new Error('Customer not found');
-      }
-
       // Extract location data for API call
       let locationToSend = newCustomer.location;
       let fullLocationData = null;
@@ -375,13 +399,49 @@ const Profile: React.FC = () => {
         locationToSend = newCustomer.location;
       }
 
-      // Call the API to update sample provider
-      await apiService.updateSampleProvider(user.id, customerIndex, {
+      // Call the API to update sample provider by ID
+      const response = await apiService.updateSampleProviderById(user.id, editingCustomerId, {
         samplerName: newCustomer.name,
         phoneNumber: newCustomer.phoneNumber,
         location: locationToSend,
         coordinates: fullLocationData?.coordinates,
       });
+
+      console.log('Update customer API response:', response);
+
+      // Update user data with the response from the API
+      const newCustomers = response.sampleProviders?.map((provider) => ({
+        id: provider.id,
+        name: provider.samplerName,
+        phoneNumber: provider.phoneNumber,
+        location: provider.location,
+        coordinates: provider.coordinates,
+      })) || [];
+
+      console.log('Updated customers array:', newCustomers);
+
+      const updatedUser = {
+        ...user,
+        customers: newCustomers,
+      };
+
+      // Update user context and wait for it to complete
+      const updateResult = await updateUser(updatedUser);
+      console.log('UpdateUser result:', updateResult);
+      
+      if (!updateResult.success) {
+        console.warn('Failed to update user context:', updateResult.error);
+        // Even if context update fails, the API call succeeded, so show success
+      }
+
+      // Wait a moment for context to update, then force a formData refresh
+      setTimeout(() => {
+        console.log('Force refreshing formData after update');
+        setFormData(prev => ({
+          ...prev,
+          customers: newCustomers,
+        }));
+      }, 100);
 
       // Store coordinates locally if available
       if (fullLocationData?.coordinates) {
@@ -390,9 +450,6 @@ const Profile: React.FC = () => {
           [editingCustomerId]: fullLocationData.coordinates
         }));
       }
-
-      // Refresh user profile to get updated data
-      await fetchUserProfile();
       
       showToast('Customer updated successfully!', 'success');
 
@@ -422,26 +479,46 @@ const Profile: React.FC = () => {
       setLoading(true);
       setError('');
 
-      // Find the index of the customer to delete
-      const customerIndex = formData.customers.findIndex(
-        (customer) => customer.id === customerId
-      );
+      // Call the API to delete the sample provider by ID
+      const response = await apiService.deleteSampleProviderById(user.id, customerId);
 
-      if (customerIndex === -1) {
-        showToast('Customer not found', 'error');
-        return;
+      console.log('Delete customer API response:', response);
+
+      // Update user data with the response from the API
+      const newCustomers = response.sampleProviders?.map((provider) => ({
+        id: provider.id,
+        name: provider.samplerName,
+        phoneNumber: provider.phoneNumber,
+        location: provider.location,
+        coordinates: provider.coordinates,
+      })) || [];
+
+      console.log('Remaining customers array:', newCustomers);
+
+      const updatedUser = {
+        ...user,
+        customers: newCustomers,
+      };
+
+      // Update user context and wait for it to complete
+      const updateResult = await updateUser(updatedUser);
+      console.log('UpdateUser result:', updateResult);
+      
+      if (!updateResult.success) {
+        console.warn('Failed to update user context:', updateResult.error);
+        // Even if context update fails, the API call succeeded, so show success
       }
 
-      // Call the API to delete the sample provider
-      await apiService.deleteSampleProvider(user.id, customerIndex);
+      // Wait a moment for context to update, then force a formData refresh
+      setTimeout(() => {
+        console.log('Force refreshing formData after delete');
+        setFormData(prev => ({
+          ...prev,
+          customers: newCustomers,
+        }));
+      }, 100);
 
       showToast('Customer deleted successfully!', 'success');
-
-      // Refresh the user profile to get the updated data
-      const result = await fetchUserProfile();
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to refresh profile after deletion');
-      }
 
       // If deleting the customer being edited, reset the editing state
       if (editingCustomerId === customerId) {
@@ -453,7 +530,7 @@ const Profile: React.FC = () => {
       let errorMessage = 'Failed to delete customer';
       
       if (error.response?.status === 404) {
-        errorMessage = 'Customer not found or invalid provider index';
+        errorMessage = 'Customer not found';
       } else if (error.response?.status === 500) {
         errorMessage = 'Server error occurred while deleting customer';
       } else if (error.message) {
@@ -486,15 +563,19 @@ const Profile: React.FC = () => {
 
   // Sync formData with user data whenever user changes
   useEffect(() => {
+    console.log('useEffect: User changed, current user customers:', user?.customers?.length || 0);
     if (user) {
-      setFormData({
+      console.log('User changed, updating formData:', user.customers?.length || 0, 'customers');
+      const newFormData = {
         name: user.name || "",
         email: user.email || "",
         company: user.company || "",
         phone: user.phone || "",
         address: user.address || "",
         customers: user.customers || [],
-      });
+      };
+      console.log('Setting formData with customers:', newFormData.customers.length);
+      setFormData(newFormData);
     }
   }, [user]);
 
@@ -928,12 +1009,8 @@ const Profile: React.FC = () => {
                     locationDisplay = customer.location;
                   }
 
-                  // Check if we have stored coordinates for this customer
-                  const customerKey = `${customer.name}-${customer.phoneNumber}-${customer.location}`;
-                  const storedCoordinates = customerCoordinates[customerKey];
-                  
-                  // Use stored coordinates if available, otherwise try parsed coordinates
-                  const coordinates = storedCoordinates || locationData?.coordinates;
+                  // Use coordinates from customer object, fallback to stored coordinates, then parsed coordinates
+                  const coordinates = customer.coordinates || customerCoordinates[customer.id] || locationData?.coordinates;
                   
                   // Function to open Google Maps with the coordinates
                   const openInGoogleMaps = () => {
@@ -951,6 +1028,10 @@ const Profile: React.FC = () => {
                           <h4 className="text-md font-medium text-gray-900 mb-1">
                             {customer.name}
                           </h4>
+                          {/* Display the customer ID for debugging */}
+                          <p className="text-xs text-gray-400 mb-1">
+                            ID: {customer.id}
+                          </p>
                           {/* Move location to its own block with more space */}
                           <div className="flex flex-col space-y-1">
                             <p className="text-sm text-gray-500 break-words">

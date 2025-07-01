@@ -1,9 +1,120 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getSamples, saveSamples, updateSampleStatus, getRandomAgent, createTestReport } from '../utils/localStorage';
 import { Sample } from '../types';
-import { Upload, MapPin, Tag, Users, CheckCircle, Clock, UserCheck, FlaskConical } from 'lucide-react';
+import { apiService } from '../services/api';
+import { Upload, MapPin, Tag, Users, CheckCircle, Clock, UserCheck, FlaskConical, Phone, Mail } from 'lucide-react';
+
+// Extend Window interface for Google Maps
+declare global {
+  interface Window {
+    google: any;
+  }
+}
+
+// Define proper types for the component props
+interface LocationAutocompleteProps {
+  value: string;
+  onChange: (e: { target: { name: string; value: string } }) => void;
+  disabled?: boolean;
+}
+
+const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({ value, onChange, disabled = false }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [inputValue, setInputValue] = useState("");
+
+  // Show only the address in the input, not the JSON
+  useEffect(() => {
+    if (!value) {
+      setInputValue("");
+      return;
+    }
+    try {
+      const parsed = JSON.parse(value);
+      setInputValue(parsed.address || value);
+    } catch {
+      setInputValue(value);
+    }
+  }, [value]);
+
+  // Google Places Autocomplete
+  useEffect(() => {
+    if (!window.google || !window.google.maps || !window.google.maps.places || disabled) {
+      return;
+    }
+    if (!inputRef.current) return;
+
+    let autocompleteInstance: google.maps.places.Autocomplete | null = null;
+    try {
+      autocompleteInstance = new window.google.maps.places.Autocomplete(
+        inputRef.current,
+        {
+          types: ["establishment", "geocode"],
+          componentRestrictions: { country: "in" },
+          fields: ["address_components", "formatted_address", "geometry", "name", "place_id"]
+        }
+      );
+
+      if (autocompleteInstance) {
+        autocompleteInstance.addListener("place_changed", () => {
+          const place = autocompleteInstance?.getPlace();
+          if (!place?.geometry) return;
+
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          const formattedAddress = place.formatted_address;
+
+          const exactLocation = JSON.stringify({
+            address: formattedAddress,
+            coordinates: { lat, lng },
+            placeId: place.place_id
+          });
+
+          setInputValue(formattedAddress || "");
+          onChange({
+            target: {
+              name: "location",
+              value: exactLocation
+            },
+          });
+        });
+      }
+
+      return () => {
+        if (autocompleteInstance) {
+          google.maps.event.clearInstanceListeners(autocompleteInstance);
+        }
+      };
+    } catch (error) {
+      console.error("Error initializing Places Autocomplete:", error);
+    }
+  }, [onChange, disabled]);
+
+  return (
+    <div className="relative">
+      <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+      <input
+        ref={inputRef}
+        type="text"
+        name="location"
+        value={inputValue}
+        onChange={(e) => {
+          if (!disabled) {
+            setInputValue(e.target.value);
+            // Do not call onChange here, only update local input
+          }
+        }}
+        disabled={disabled}
+        className={`w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${
+          disabled ? 'bg-gray-100 cursor-not-allowed' : ''
+        }`}
+        placeholder={disabled ? 'Auto-populated from customer' : 'Enter sample location'}
+        autoComplete="off"
+      />
+    </div>
+  );
+};
 
 const SubmitSample: React.FC = () => {
   const { user } = useAuth();
@@ -12,21 +123,17 @@ const SubmitSample: React.FC = () => {
   const [submittedSample, setSubmittedSample] = useState<Sample | null>(null);
   const [progressStage, setProgressStage] = useState<'submitted' | 'agent-assigned' | 'testing' | 'completed'>('submitted');
   const [assignedAgent, setAssignedAgent] = useState<string>('');
+  const [sampleProviders, setSampleProviders] = useState<any[]>([]);
+  const [loadingSampleProviders, setLoadingSampleProviders] = useState(false);
   
   const [formData, setFormData] = useState({
+    customerId: '',
     location: '',
     category: '',
     subCategory: '',
-    contactInfo: user?.email || '',
+    phoneNumber: '',
+    email: '',
   });
-
-  const locations = [
-    'Suryamitra exim pvt ltd',
-    'Jaylakshmi Marine', 
-    'SRK Aqua',
-    'CYR Marines',
-    'Antibiotic Labs',
-  ];
 
   const categories = [
     'Pacific White Shrimp',
@@ -49,7 +156,7 @@ const SubmitSample: React.FC = () => {
   useEffect(() => {
     if (!submitted || !submittedSample) return;
 
-    const timers: NodeJS.Timeout[] = [];
+    const timers: number[] = [];
 
     // Stage 1: Agent assignment after 30 seconds
     timers.push(setTimeout(() => {
@@ -77,27 +184,141 @@ const SubmitSample: React.FC = () => {
     };
   }, [submitted, submittedSample]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const newSample: Sample = {
-      id: Date.now().toString(),
-      userId: user!.id,
-      location: formData.location,
-      category: formData.category,
-      subCategory: formData.subCategory,
-      contactInfo: formData.contactInfo,
-      submittedAt: new Date().toISOString(),
-      status: 'pending',
+  // Fetch sample providers when component mounts
+  useEffect(() => {
+    const fetchSampleProviders = async () => {
+      if (!user?.id) return;
+      
+      try {
+        setLoadingSampleProviders(true);
+        const providers = await apiService.getSampleProviders(user.id);
+        setSampleProviders(providers);
+      } catch (error) {
+        console.error('Failed to fetch sample providers:', error);
+        // Fallback to user customers if API fails
+        setSampleProviders(user?.customers || []);
+      } finally {
+        setLoadingSampleProviders(false);
+      }
     };
 
-    const samples = getSamples();
-    samples.push(newSample);
-    saveSamples(samples);
+    fetchSampleProviders();
+  }, [user?.id, user?.customers]);
+
+  // Handle customer selection and auto-populate location and contact info
+  const handleCustomerChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const customerId = e.target.value;
+    const selectedProvider = sampleProviders.find(provider => provider.id === customerId);
     
-    setSubmittedSample(newSample);
-    setSubmitted(true);
-    setProgressStage('submitted');
+    setFormData(prev => ({
+      ...prev,
+      customerId,
+      location: selectedProvider ? JSON.stringify({
+        address: selectedProvider.location,
+        coordinates: selectedProvider.coordinates,
+      }) : '',
+      phoneNumber: selectedProvider ? selectedProvider.phoneNumber : '',
+      email: '', // Email is optional and not provided by API
+    }));
+  };
+
+  const handleLocationChange = (e: { target: { name: string; value: string } }) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate that a customer is selected if customers exist
+    if (sampleProviders && sampleProviders.length > 0 && !formData.customerId) {
+      alert('Please select a customer before submitting the sample.');
+      return;
+    }
+
+    try {
+      // Extract location data and coordinates
+      let locationData;
+      let coordinates;
+      
+      try {
+        locationData = JSON.parse(formData.location);
+        coordinates = locationData.coordinates;
+      } catch {
+        // If location is not JSON, create default coordinates
+        alert('Please select a valid location with coordinates.');
+        return;
+      }
+
+      if (!coordinates || !coordinates.lat || !coordinates.lng) {
+        alert('Please select a location with valid coordinates.');
+        return;
+      }
+
+      // Get selected customer data
+      const selectedProvider = sampleProviders.find(provider => provider.id === formData.customerId);
+      if (!selectedProvider) {
+        alert('Selected customer not found.');
+        return;
+      }
+
+      // Prepare API submission data
+      const submissionData = {
+        consumerId: user!.id,
+        samplerId: formData.customerId,
+        samplerName: selectedProvider.samplerName,
+        samplerLocation: locationData.address || formData.location,
+        coordinate: {
+          lat: coordinates.lat,
+          lng: coordinates.lng,
+        },
+        shrimpCategory: formData.category,
+        shrimpSubCategory: formData.subCategory,
+        phoneNumber: formData.phoneNumber,
+        emailAddress: formData.email || undefined,
+      };
+
+      // Submit to API
+      const response = await apiService.submitSample(submissionData);
+      
+      // Create local sample record for UI
+      const newSample: Sample = {
+        id: response.id || Date.now().toString(),
+        userId: user!.id,
+        customerId: formData.customerId,
+        location: locationData.address || formData.location,
+        category: formData.category,
+        subCategory: formData.subCategory,
+        contactInfo: `Phone: ${formData.phoneNumber}${formData.email ? `, Email: ${formData.email}` : ''}`,
+        submittedAt: new Date().toISOString(),
+        status: 'pending',
+      };
+
+      // Save locally for UI state
+      const samples = getSamples();
+      samples.push(newSample);
+      saveSamples(samples);
+      
+      setSubmittedSample(newSample);
+      setSubmitted(true);
+      setProgressStage('submitted');
+
+    } catch (error: any) {
+      console.error('Sample submission failed:', error);
+      
+      let errorMessage = 'Failed to submit sample';
+      if (error.response?.status === 400) {
+        errorMessage = 'Invalid input data. Please check all fields.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(errorMessage);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -184,9 +405,45 @@ const SubmitSample: React.FC = () => {
                 <span className="text-sm font-medium text-gray-500">Submission Date</span>
                 <p className="text-gray-900 text-sm lg:text-base">{new Date(submittedSample.submittedAt).toLocaleString()}</p>
               </div>
+              {submittedSample.customerId && (
+                <div>
+                  <span className="text-sm font-medium text-gray-500">Customer</span>
+                  <p className="text-gray-900 text-sm lg:text-base">
+                    {(() => {
+                      const customer = sampleProviders.find(provider => provider.id === submittedSample.customerId);
+                      return customer ? `${customer.samplerName} (ID: ${customer.id})` : 'Unknown Customer';
+                    })()}
+                  </p>
+                </div>
+              )}
               <div>
                 <span className="text-sm font-medium text-gray-500">Location</span>
-                <p className="text-gray-900 text-sm lg:text-base">{submittedSample.location}</p>
+                <div className="flex flex-col space-y-1">
+                  <p className="text-gray-900 text-sm lg:text-base">{submittedSample.location}</p>
+                  {(() => {
+                    // Try to get coordinates from the submitted sample data
+                    const selectedProvider = sampleProviders.find(provider => provider.id === submittedSample.customerId);
+                    const coordinates = selectedProvider?.coordinates;
+                    
+                    if (coordinates) {
+                      return (
+                        <button
+                          onClick={() => {
+                            const { lat, lng } = coordinates;
+                            const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+                            window.open(mapsUrl, '_blank');
+                          }}
+                          className="self-start text-xs text-cyan-600 hover:text-cyan-800 flex items-center"
+                          title="Open in Google Maps"
+                        >
+                          <MapPin className="h-3 w-3 mr-1" />
+                          View on map
+                        </button>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
               </div>
               <div>
                 <span className="text-sm font-medium text-gray-500">Category</span>
@@ -308,26 +565,88 @@ const SubmitSample: React.FC = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 lg:p-8 space-y-6">
+          {/* Customer Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Users className="inline h-4 w-4 mr-1" />
+              Select Customer *
+            </label>
+            <select
+              name="customerId"
+              value={formData.customerId}
+              onChange={handleCustomerChange}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              disabled={loadingSampleProviders}
+            >
+              <option value="">
+                {loadingSampleProviders ? 'Loading customers...' : 'Select a customer'}
+              </option>
+              {sampleProviders.map((provider) => (
+                <option key={provider.id} value={provider.id}>
+                  {provider.samplerName} - ID: {provider.id}
+                </option>
+              ))}
+            </select>
+            {(!sampleProviders || sampleProviders.length === 0) && !loadingSampleProviders && (
+              <div className="mt-1 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-sm text-amber-700">
+                  No customers found. Please{' '}
+                  <button
+                    type="button"
+                    onClick={() => navigate('/profile')}
+                    className="font-medium text-amber-800 hover:text-amber-900 underline"
+                  >
+                    add customers in your profile
+                  </button>
+                  {' '}first.
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Location */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <MapPin className="inline h-4 w-4 mr-1" />
               Sample Location *
             </label>
-            <select
-              name="location"
+            <LocationAutocomplete
               value={formData.location}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-            >
-              <option value="">Select a location</option>
-              {locations.map((location) => (
-                <option key={location} value={location}>
-                  {location}
-                </option>
-              ))}
-            </select>
+              onChange={handleLocationChange}
+              disabled={!!formData.customerId}
+            />
+            {formData.customerId && (
+              <p className="mt-1 text-xs text-gray-500">
+                Location automatically populated from selected customer
+              </p>
+            )}
+            {formData.location && (() => {
+              try {
+                const locationData = JSON.parse(formData.location);
+                const coordinates = locationData.coordinates;
+                if (coordinates && coordinates.lat && coordinates.lng) {
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const { lat, lng } = coordinates;
+                        const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+                        window.open(mapsUrl, '_blank');
+                      }}
+                      className="mt-1 text-xs text-cyan-600 hover:text-cyan-800 flex items-center"
+                      title="Open location in Google Maps"
+                    >
+                      <MapPin className="h-3 w-3 mr-1" />
+                      View location on map
+                    </button>
+                  );
+                }
+              } catch {
+                // Invalid JSON, don't show map link
+              }
+              return null;
+            })()}
           </div>
 
           {/* Category */}
@@ -373,20 +692,47 @@ const SubmitSample: React.FC = () => {
           </div>
 
           {/* Contact Information */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Users className="inline h-4 w-4 mr-1" />
-              Contact Information *
-            </label>
-            <textarea
-              name="contactInfo"
-              value={formData.contactInfo}
-              onChange={handleInputChange}
-              required
-              rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              placeholder="Email address or additional contact details for this submission"
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Phone Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Phone className="inline h-4 w-4 mr-1" />
+                Phone Number *
+              </label>
+              <input
+                type="tel"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleInputChange}
+                required
+                readOnly={!!formData.customerId}
+                className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${
+                  formData.customerId ? 'bg-gray-100 cursor-not-allowed' : ''
+                }`}
+                placeholder={formData.customerId ? 'Auto-populated from customer' : 'Enter phone number'}
+              />
+              {formData.customerId && (
+                <p className="mt-1 text-xs text-gray-500">
+                  Phone number automatically populated from selected customer
+                </p>
+              )}
+            </div>
+
+            {/* Email (Optional) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Mail className="inline h-4 w-4 mr-1" />
+                Email Address (Optional)
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                placeholder="Enter email address (optional)"
+              />
+            </div>
           </div>
 
           {/* Important Notes */}

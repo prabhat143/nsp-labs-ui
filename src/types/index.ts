@@ -24,6 +24,7 @@ export interface User {
 export interface Sample {
   id: string;
   userId: string;
+  customerId?: string;
   location: string;
   category: string;
   subCategory?: string;

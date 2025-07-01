@@ -22,8 +22,12 @@ export const API_ENDPOINTS = {
     GET_PROFILE: (id: string) => `/customers/${id}`,
     ADD_SAMPLE_PROVIDER: (id: string) => `/customers/${id}/sample-providers`,
     DELETE_SAMPLE_PROVIDER: (id: string, providerIndex: number) => `/customers/${id}/sample-providers/${providerIndex}`,
-    DELETE_SAMPLE_PROVIDER_BY_ID: (id: string, providerId: string) => `/customers/${id}/sample-providers/id/${providerId}`,
+    DELETE_SAMPLE_PROVIDER_BY_ID: (id: string, providerId: string) => `/customers/${id}/sample-providers/${providerId}`,
     UPDATE_SAMPLE_PROVIDER: (id: string, providerIndex: number) => `/customers/${id}/sample-providers-simple/${providerIndex}`,
-    UPDATE_SAMPLE_PROVIDER_BY_ID: (id: string, providerId: string) => `/customers/${id}/sample-providers/id/${providerId}`,
+    UPDATE_SAMPLE_PROVIDER_BY_ID: (id: string, providerId: string) => `/customers/${id}/sample-providers/${providerId}`,
+    GET_SAMPLE_PROVIDERS: (id: string) => `/customers/${id}/sample-providers`,
+  },
+  SAMPLES: {
+    SUBMIT: '/sample-submissions',
   },
 };

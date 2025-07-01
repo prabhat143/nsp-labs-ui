@@ -132,6 +132,26 @@ export interface UpdateSampleProviderRequest {
   };
 }
 
+export interface SampleSubmissionRequest {
+  consumerId: string;
+  samplerId: string;
+  samplerName: string;
+  samplerLocation: string;
+  coordinate: {
+    lat: number;
+    lng: number;
+  };
+  shrimpCategory: string;
+  shrimpSubCategory: string;
+  phoneNumber: string;
+  emailAddress?: string;
+}
+
+export interface SampleSubmissionResponse {
+  id: string;
+  message: string;
+}
+
 class ApiService {
   private baseURL: string;
 
@@ -288,6 +308,29 @@ class ApiService {
     return this.makeRequest<CustomerProfileResponse>(API_ENDPOINTS.CUSTOMERS.UPDATE_SAMPLE_PROVIDER_BY_ID(userId, providerId), {
       method: 'PUT',
       body: JSON.stringify(sampleProviderData),
+    });
+  }
+
+  async getSampleProviders(userId: string): Promise<SampleProvider[]> {
+    const token = tokenService.getToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    return this.makeRequest<SampleProvider[]>(API_ENDPOINTS.CUSTOMERS.GET_SAMPLE_PROVIDERS(userId), {
+      method: 'GET',
+    });
+  }
+
+  async submitSample(sampleData: SampleSubmissionRequest): Promise<SampleSubmissionResponse> {
+    const token = tokenService.getToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    return this.makeRequest<SampleSubmissionResponse>(API_ENDPOINTS.SAMPLES.SUBMIT, {
+      method: 'POST',
+      body: JSON.stringify(sampleData),
     });
   }
 }

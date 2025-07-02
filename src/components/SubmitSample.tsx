@@ -279,6 +279,7 @@ const SubmitSample: React.FC = () => {
         phoneNumber: formData.phoneNumber,
         emailAddress: formData.email || undefined,
         status: "PENDING",
+        assigned: "",
       };
 
       // Submit to API

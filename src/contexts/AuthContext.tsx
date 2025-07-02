@@ -53,6 +53,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
+      setError(null);
+      setLoading(true);
+      
       const response = await apiService.login({ email, password });
       
       // Debug: Log the actual response structure
@@ -106,36 +109,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           tokenType
         );
         
+        setLoading(false);
         return true;
       }
       
       // Debug: Log why login failed
       console.log('Login failed - missing required fields in response');
+      setLoading(false);
       return false;
     } catch (error: any) {
       console.error('Login failed:', error);
       
       let errorMessage = 'Login failed';
       
+      // Handle specific HTTP status codes
       if (error.response?.status === 401) {
         errorMessage = 'Invalid email or password';
       } else if (error.response?.status === 500) {
         errorMessage = 'Server error. Please try again later.';
+      } else if (error.response?.status === 502) {
+        errorMessage = 'Service temporarily unavailable. Please try again later.';
+      } else if (error.response?.status === 503) {
+        errorMessage = 'Service unavailable. Please try again later.';
+      } else if (error.response?.status === 504) {
+        errorMessage = 'Request timeout. Please try again later.';
+      } else if (!navigator.onLine) {
+        errorMessage = 'No internet connection. Please check your connection and try again.';
       } else {
-        errorMessage = error.message || 'Login failed';
+        errorMessage = error.message || 'Network error. Please try again later.';
       }
       
       setError(errorMessage);
+      setLoading(false);
       
-      // Fallback to local storage for development/demo purposes
-      const users = getUsers();
-      const foundUser = users.find(u => u.email === email);
-      
-      if (foundUser) {
-        setUser(foundUser);
-        setCurrentUser(foundUser);
-        return true;
-      }
+      // Do not fallback to local storage - return false for any API error
       return false;
     }
   };

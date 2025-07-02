@@ -15,7 +15,7 @@ const LoginRegister: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { login, register } = useAuth();
+  const { login, register, error: authError } = useAuth();
   const { showToast, ToastContainer } = useToast();
   const navigate = useNavigate();
 
@@ -30,7 +30,8 @@ const LoginRegister: React.FC = () => {
         if (success) {
           navigate('/dashboard');
         } else {
-          setError('Invalid email or password. Please check your credentials and try again.');
+          // Use the error from AuthContext if available, otherwise provide fallback
+          setError(authError || 'Login failed. Please check your credentials and try again.');
         }
       } else {
         if (!formData.fullName.trim()) {

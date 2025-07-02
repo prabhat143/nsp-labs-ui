@@ -29,5 +29,6 @@ export const API_ENDPOINTS = {
   },
   SAMPLES: {
     SUBMIT: '/sample-submissions',
+    GET_BY_CONSUMER: (customerId: string) => `/sample-submissions/consumer/${customerId}`,
   },
 };

@@ -54,6 +54,25 @@ export interface TestReport {
   };
 }
 
+export interface SampleSubmission {
+  id: string;
+  consumerId: string;
+  samplerId: string;
+  samplerName: string;
+  samplerLocation: string;
+  coordinate: {
+    lat: number;
+    lng: number;
+  };
+  shrimpCategory: string;
+  shrimpSubCategory: string;
+  phoneNumber: string;
+  emailAddress: string | null;
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED';
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AuthContextType {
   user: User | null;
   loading: boolean;

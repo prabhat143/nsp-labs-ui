@@ -1,5 +1,6 @@
 import { getApiConfig, API_ENDPOINTS } from '../config/api';
 import { tokenService } from './tokenService';
+import { SampleSubmission } from '../types';
 
 export interface SampleProviderRequest {
   samplerName: string;
@@ -332,6 +333,17 @@ class ApiService {
     return this.makeRequest<SampleSubmissionResponse>(API_ENDPOINTS.SAMPLES.SUBMIT, {
       method: 'POST',
       body: JSON.stringify(sampleData),
+    });
+  }
+
+  async getSampleSubmissions(customerId: string): Promise<SampleSubmission[]> {
+    const token = tokenService.getToken();
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    return this.makeRequest<SampleSubmission[]>(API_ENDPOINTS.SAMPLES.GET_BY_CONSUMER(customerId), {
+      method: 'GET',
     });
   }
 }

@@ -24,23 +24,40 @@ const SampleHistory: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [lastFetch, setLastFetch] = useState<number>(0);
+  const [highlightedSample, setHighlightedSample] = useState<string | null>(null);
 
   useEffect(() => {
     const statusFilter = searchParams.get('status');
+    const highlightParam = searchParams.get('highlight');
+    
     if (statusFilter) {
       setActiveFilter(statusFilter);
+    }
+    
+    if (highlightParam) {
+      setHighlightedSample(highlightParam);
+      // Remove highlight after 3 seconds
+      setTimeout(() => setHighlightedSample(null), 3000);
     }
   }, [searchParams]);
 
   useEffect(() => {
-    const fetchSamples = async () => {
+    const fetchSamples = async (isRefresh = false) => {
       if (!user?.id) {
         setLoading(false);
         return;
       }
 
+      // Prevent multiple simultaneous requests
+      const now = Date.now();
+      if (isRefresh && now - lastFetch < 100) { // Minimum 100ms between requests
+        return;
+      }
+
       try {
         setError(null);
+        setLastFetch(now);
         const sampleSubmissions = await apiService.getSampleSubmissions(user.id);
         setSamples(sampleSubmissions);
       } catch (err) {
@@ -51,7 +68,20 @@ const SampleHistory: React.FC = () => {
       }
     };
 
+    // Initial fetch
     fetchSamples();
+
+    // Set up polling for real-time updates every 200ms
+    const pollInterval = setInterval(() => {
+      if (user?.id) {
+        fetchSamples(true); // Mark as refresh
+      }
+    }, 200); // 200 milliseconds
+
+    // Cleanup interval on unmount
+    return () => {
+      clearInterval(pollInterval);
+    };
   }, [user?.id]);
 
   const getStatusIcon = (status: string) => {
@@ -124,7 +154,7 @@ const SampleHistory: React.FC = () => {
           <div className="w-10 h-10 lg:w-12 lg:h-12 bg-purple-100 rounded-lg flex items-center justify-center">
             <FlaskConical className="h-5 w-5 lg:h-6 lg:w-6 text-purple-600" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Sample History</h1>
             <p className="text-gray-600 text-sm lg:text-base">Track the status of all your submitted samples</p>
           </div>
@@ -232,7 +262,14 @@ const SampleHistory: React.FC = () => {
           </div>
         ) : (
           filteredSamples.map((sample) => (
-            <div key={sample.id} className="bg-white rounded-xl shadow-lg p-4 lg:p-6 hover:shadow-xl transition-shadow">
+            <div 
+              key={sample.id} 
+              className={`bg-white rounded-xl shadow-lg p-4 lg:p-6 hover:shadow-xl transition-all duration-300 ${
+                highlightedSample === sample.id 
+                  ? 'ring-2 ring-blue-500 bg-blue-50 shadow-2xl' 
+                  : ''
+              }`}
+            >
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                 <div className="flex-1">
                   <div className="flex items-center space-x-4 mb-4">

@@ -91,6 +91,8 @@ const Dashboard: React.FC = () => {
       icon: Clock,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-100',
+      onClick: () => navigate('/samples?status=pending'),
+      clickable: pendingSamples > 0,
     },
     {
       label: 'Testing in Progress',
@@ -98,6 +100,8 @@ const Dashboard: React.FC = () => {
       icon: FlaskConical,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
+      onClick: () => navigate('/samples?status=testing'),
+      clickable: testingSamples > 0,
     },
     {
       label: 'Completed Tests',
@@ -105,6 +109,8 @@ const Dashboard: React.FC = () => {
       icon: CheckCircle,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
+      onClick: () => navigate('/samples?status=completed'),
+      clickable: completedSamples > 0,
     },
     {
       label: 'Success Rate',
@@ -112,6 +118,8 @@ const Dashboard: React.FC = () => {
       icon: TrendingUp,
       color: 'text-cyan-600',
       bgColor: 'bg-cyan-100',
+      onClick: () => navigate('/samples?status=completed'),
+      clickable: completedSamples > 0,
     },
   ];
 
@@ -155,7 +163,15 @@ const Dashboard: React.FC = () => {
       {/* Stats Overview */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {stats.map((stat, index) => (
-          <div key={index} className="bg-white rounded-xl p-4 lg:p-6 shadow-lg hover:shadow-xl transition-shadow">
+          <div 
+            key={index} 
+            onClick={stat.clickable ? stat.onClick : undefined}
+            className={`bg-white rounded-xl p-4 lg:p-6 shadow-lg transition-all duration-200 ${
+              stat.clickable 
+                ? 'hover:shadow-xl hover:scale-105 cursor-pointer transform' 
+                : ''
+            }`}
+          >
             <div className="flex items-center">
               <div className={`p-2 lg:p-3 rounded-lg ${stat.bgColor}`}>
                 <stat.icon className={`h-4 w-4 lg:h-6 lg:w-6 ${stat.color}`} />

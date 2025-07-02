@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../services/api';
 import { SampleSubmission } from '../types';
@@ -19,9 +19,18 @@ import {
 const SampleHistory: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [samples, setSamples] = useState<SampleSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string>('all');
+
+  useEffect(() => {
+    const statusFilter = searchParams.get('status');
+    if (statusFilter) {
+      setActiveFilter(statusFilter);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchSamples = async () => {
@@ -91,6 +100,22 @@ const SampleHistory: React.FC = () => {
     navigate(`/timeline/${sampleId}`);
   };
 
+  // Filter samples based on active filter
+  const getFilteredSamples = () => {
+    switch (activeFilter) {
+      case 'pending':
+        return samples.filter(s => s.status.toUpperCase() === 'PENDING');
+      case 'testing':
+        return samples.filter(s => s.status.toUpperCase() === 'PROCESSING' || s.status.toUpperCase() === 'TESTING');
+      case 'completed':
+        return samples.filter(s => s.status.toUpperCase() === 'COMPLETED');
+      default:
+        return samples;
+    }
+  };
+
+  const filteredSamples = getFilteredSamples();
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -108,12 +133,48 @@ const SampleHistory: React.FC = () => {
         {/* Statistics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Total Samples', value: samples.length, color: 'bg-blue-100 text-blue-800' },
-            { label: 'Pending', value: samples.filter(s => s.status.toUpperCase() === 'PENDING').length, color: 'bg-yellow-100 text-yellow-800' },
-            { label: 'Testing', value: samples.filter(s => s.status.toUpperCase() === 'PROCESSING' || s.status.toUpperCase() === 'TESTING').length, color: 'bg-purple-100 text-purple-800' },
-            { label: 'Completed', value: samples.filter(s => s.status.toUpperCase() === 'COMPLETED').length, color: 'bg-green-100 text-green-800' },
+            { 
+              label: 'Total Samples', 
+              value: samples.length, 
+              color: 'bg-blue-100 text-blue-800',
+              filterKey: 'all',
+              clickable: true
+            },
+            { 
+              label: 'Pending', 
+              value: samples.filter(s => s.status.toUpperCase() === 'PENDING').length, 
+              color: 'bg-yellow-100 text-yellow-800',
+              filterKey: 'pending',
+              clickable: samples.filter(s => s.status.toUpperCase() === 'PENDING').length > 0
+            },
+            { 
+              label: 'Testing', 
+              value: samples.filter(s => s.status.toUpperCase() === 'PROCESSING' || s.status.toUpperCase() === 'TESTING').length, 
+              color: 'bg-purple-100 text-purple-800',
+              filterKey: 'testing',
+              clickable: samples.filter(s => s.status.toUpperCase() === 'PROCESSING' || s.status.toUpperCase() === 'TESTING').length > 0
+            },
+            { 
+              label: 'Completed', 
+              value: samples.filter(s => s.status.toUpperCase() === 'COMPLETED').length, 
+              color: 'bg-green-100 text-green-800',
+              filterKey: 'completed',
+              clickable: samples.filter(s => s.status.toUpperCase() === 'COMPLETED').length > 0
+            },
           ].map((stat, index) => (
-            <div key={index} className={`${stat.color} rounded-lg p-3 lg:p-4 text-center`}>
+            <div 
+              key={index} 
+              onClick={stat.clickable ? () => setActiveFilter(stat.filterKey) : undefined}
+              className={`${stat.color} rounded-lg p-3 lg:p-4 text-center transition-all duration-200 ${
+                stat.clickable 
+                  ? 'cursor-pointer hover:scale-105 transform hover:shadow-md' 
+                  : ''
+              } ${
+                activeFilter === stat.filterKey 
+                  ? 'ring-2 ring-blue-500 ring-offset-2' 
+                  : ''
+              }`}
+            >
               <div className="text-lg lg:text-2xl font-bold">{stat.value}</div>
               <div className="text-xs lg:text-sm font-medium">{stat.label}</div>
             </div>
@@ -153,8 +214,24 @@ const SampleHistory: React.FC = () => {
               Submit Your First Sample
             </button>
           </div>
+        ) : filteredSamples.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-lg p-8 lg:p-12 text-center">
+            <FlaskConical className="h-12 w-12 lg:h-16 lg:w-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-2">No {activeFilter === 'all' ? '' : activeFilter.charAt(0).toUpperCase() + activeFilter.slice(1)} Samples</h3>
+            <p className="text-gray-600 mb-6 text-sm lg:text-base">
+              {activeFilter === 'all' 
+                ? 'No samples found.' 
+                : `You don't have any ${activeFilter} samples at the moment.`}
+            </p>
+            <button
+              onClick={() => setActiveFilter('all')}
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-colors"
+            >
+              View All Samples
+            </button>
+          </div>
         ) : (
-          samples.map((sample) => (
+          filteredSamples.map((sample) => (
             <div key={sample.id} className="bg-white rounded-xl shadow-lg p-4 lg:p-6 hover:shadow-xl transition-shadow">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                 <div className="flex-1">

@@ -68,7 +68,7 @@ export interface SampleSubmission {
   shrimpSubCategory: string;
   phoneNumber: string;
   emailAddress: string | null;
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED';
+  status: 'PENDING' | 'PROCESSING' | 'TESTING' | 'COMPLETED';
   createdAt: string;
   updatedAt: string;
 }

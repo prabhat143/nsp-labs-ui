@@ -71,6 +71,7 @@ export interface SampleSubmission {
   status: 'PENDING' | 'PROCESSING' | 'TESTING' | 'COMPLETED';
   createdAt: string;
   updatedAt: string;
+  assigned?: string;
 }
 
 export interface AuthContextType {

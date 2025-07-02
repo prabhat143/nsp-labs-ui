@@ -241,7 +241,7 @@ const SampleHistory: React.FC = () => {
                       <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(sample.status)}`}>
                         {getStatusLabel(sample.status)}
                       </span>
-                      {(sample.status.toUpperCase() === 'PROCESSING' || sample.status.toUpperCase() === 'TESTING') && (
+                      {(sample.status.toUpperCase() === 'PROCESSING' || sample.status.toUpperCase() === 'TESTING') && sample.assigned && (
                         <div className="relative group">
                           <span className="px-3 py-1 rounded-full text-xs font-medium border bg-blue-100 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors flex items-center space-x-1">
                             <User className="h-3 w-3" />
@@ -249,8 +249,8 @@ const SampleHistory: React.FC = () => {
                           </span>
                           {/* Tooltip on hover */}
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                            <div className="font-medium">Agent #001 - Lab Technician</div>
-                            <div className="text-gray-300">Dr. Sarah Johnson</div>
+                            <div className="font-medium">Agent ID: {sample.assigned}</div>
+                            <div className="text-gray-300">Lab Technician</div>
                             <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                           </div>
                         </div>
@@ -320,6 +320,12 @@ const SampleHistory: React.FC = () => {
                             {sample.coordinate.lat.toFixed(6)}, {sample.coordinate.lng.toFixed(6)}
                           </span>
                         </div>
+                        {sample.assigned && (
+                          <div>
+                            <span className="font-medium text-gray-700">Assigned Agent:</span>
+                            <span className="ml-2 text-gray-600">{sample.assigned}</span>
+                          </div>
+                        )}
                         <div className="md:col-span-2">
                           <span className="font-medium text-gray-700">Last Updated:</span>
                           <span className="ml-2 text-gray-600">

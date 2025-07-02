@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserSamples, getUserReports } from '../utils/localStorage';
+import { apiService } from '../services/api';
+import { SampleSubmission } from '../types';
 import { 
   User, 
   Upload, 
@@ -16,14 +17,37 @@ import {
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [samples, setSamples] = useState<SampleSubmission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSamples = async () => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setError(null);
+        const sampleSubmissions = await apiService.getSampleSubmissions(user.id);
+        setSamples(sampleSubmissions);
+      } catch (err) {
+        console.error('Failed to fetch sample submissions:', err);
+        setError('Failed to load sample data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSamples();
+  }, [user?.id]);
   
-  const samples = getUserSamples(user?.id || '');
-  const reports = getUserReports(user?.id || '');
-  
-  const pendingSamples = samples.filter(s => s.status === 'pending').length;
-  const testingSamples = samples.filter(s => s.status === 'testing').length;
-  const completedSamples = samples.filter(s => s.status === 'completed').length;
-  const successfulTests = reports.filter(r => r.result === 'success').length;
+  // Calculate statistics from API data
+  const pendingSamples = samples.filter(s => s.status.toUpperCase() === 'PENDING').length;
+  const testingSamples = samples.filter(s => s.status.toUpperCase() === 'PROCESSING' || s.status.toUpperCase() === 'TESTING').length;
+  const completedSamples = samples.filter(s => s.status.toUpperCase() === 'COMPLETED').length;
+  const successfulTests = completedSamples; // Assuming completed means successful for now
 
   const dashboardCards = [
     {
@@ -52,7 +76,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: 'Test Reports',
-      description: `Access your ${reports.length} completed test reports`,
+      description: `Access your ${completedSamples} completed test reports`,
       icon: FileText,
       color: 'bg-orange-500',
       hoverColor: 'hover:bg-orange-600',
@@ -84,7 +108,7 @@ const Dashboard: React.FC = () => {
     },
     {
       label: 'Success Rate',
-      value: reports.length > 0 ? `${Math.round((successfulTests / reports.length) * 100)}%` : '0%',
+      value: completedSamples > 0 ? `${Math.round((successfulTests / completedSamples) * 100)}%` : '0%',
       icon: TrendingUp,
       color: 'text-cyan-600',
       bgColor: 'bg-cyan-100',
@@ -93,13 +117,40 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 lg:space-y-8">
-      {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl p-6 lg:p-8 text-white">
-        <h1 className="text-2xl lg:text-3xl font-bold mb-2">Welcome back, {user?.name}!</h1>
-        <p className="text-cyan-100 text-base lg:text-lg">
-          Your shrimp testing dashboard is ready. What would you like to do today?
-        </p>
-      </div>
+      {/* Loading State */}
+      {loading && (
+        <div className="bg-white rounded-2xl shadow-lg p-8 lg:p-12 text-center">
+          <FlaskConical className="h-12 w-12 lg:h-16 lg:w-16 text-gray-300 mx-auto mb-4 animate-pulse" />
+          <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-2">Loading Dashboard...</h3>
+          <p className="text-gray-600 mb-6 text-sm lg:text-base">Please wait while we fetch your data.</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-white rounded-2xl shadow-lg p-8 lg:p-12 text-center">
+          <AlertTriangle className="h-12 w-12 lg:h-16 lg:w-16 text-red-300 mx-auto mb-4" />
+          <h3 className="text-lg lg:text-xl font-semibold text-gray-900 mb-2">Error Loading Dashboard</h3>
+          <p className="text-red-600 mb-6 text-sm lg:text-base">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      )}
+
+      {/* Dashboard Content */}
+      {!loading && !error && (
+        <>
+          {/* Welcome Header */}
+          <div className="bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl p-6 lg:p-8 text-white">
+            <h1 className="text-2xl lg:text-3xl font-bold mb-2">Welcome back, {user?.name}!</h1>
+            <p className="text-cyan-100 text-base lg:text-lg">
+              Your shrimp testing dashboard is ready. What would you like to do today?
+            </p>
+          </div>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -152,32 +203,34 @@ const Dashboard: React.FC = () => {
               <div key={sample.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-lg space-y-3 sm:space-y-0">
                 <div className="flex items-center space-x-4">
                   <div className={`p-2 rounded-lg ${
-                    sample.status === 'completed' ? 'bg-green-100' :
-                    sample.status === 'testing' ? 'bg-blue-100' : 'bg-yellow-100'
+                    sample.status.toUpperCase() === 'COMPLETED' ? 'bg-green-100' :
+                    sample.status.toUpperCase() === 'PROCESSING' || sample.status.toUpperCase() === 'TESTING' ? 'bg-blue-100' : 'bg-yellow-100'
                   }`}>
-                    {sample.status === 'completed' ? (
+                    {sample.status.toUpperCase() === 'COMPLETED' ? (
                       <CheckCircle className="h-5 w-5 text-green-600" />
-                    ) : sample.status === 'testing' ? (
+                    ) : sample.status.toUpperCase() === 'PROCESSING' || sample.status.toUpperCase() === 'TESTING' ? (
                       <FlaskConical className="h-5 w-5 text-blue-600" />
                     ) : (
                       <Clock className="h-5 w-5 text-yellow-600" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-900 truncate">{sample.location}</p>
-                    <p className="text-sm text-gray-500">{sample.category}</p>
+                    <p className="font-medium text-gray-900 truncate">{sample.samplerLocation}</p>
+                    <p className="text-sm text-gray-500">{sample.shrimpCategory}</p>
                   </div>
                 </div>
                 <div className="text-left sm:text-right">
-                  <p className="text-sm font-medium text-gray-900 capitalize">{sample.status}</p>
+                  <p className="text-sm font-medium text-gray-900 capitalize">{sample.status.toLowerCase()}</p>
                   <p className="text-xs text-gray-500">
-                    {new Date(sample.submittedAt).toLocaleDateString()}
+                    {new Date(sample.createdAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
             ))}
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

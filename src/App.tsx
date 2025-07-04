@@ -11,6 +11,10 @@ import SampleHistory from './components/SampleHistory';
 import TestingTimeline from './components/TestingTimeline';
 import ReportHistory from './components/ReportHistory';
 import ReportDetails from './components/ReportDetails';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsOfService from './components/TermsOfService';
+import Careers from './components/Careers';
+import Blog from './components/Blog';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
@@ -37,6 +41,12 @@ function App() {
                 </PublicRoute>
               }
             />
+
+            {/* Legal and Info Pages */}
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/blog" element={<Blog />} />
 
             {/* Protected Routes */}
             <Route

@@ -143,7 +143,7 @@ const LoginRegister: React.FC = () => {
               <a href="#home" className="text-gray-700 hover:text-cyan-600 font-medium transition-colors">Home</a>
               <a href="#services" className="text-gray-700 hover:text-cyan-600 font-medium transition-colors">Services</a>
               <a href="#about" className="text-gray-700 hover:text-cyan-600 font-medium transition-colors">About Us</a>
-              <a href="#resources" className="text-gray-700 hover:text-cyan-600 font-medium transition-colors">Resources</a>
+              <a href="/blog" className="text-gray-700 hover:text-cyan-600 font-medium transition-colors">Blog</a>
               <a href="#contact" className="text-gray-700 hover:text-cyan-600 font-medium transition-colors">Contact</a>
             </nav>
 
@@ -163,7 +163,7 @@ const LoginRegister: React.FC = () => {
                 <a href="#home" className="text-gray-700 hover:text-cyan-600 font-medium px-2 py-1">Home</a>
                 <a href="#services" className="text-gray-700 hover:text-cyan-600 font-medium px-2 py-1">Services</a>
                 <a href="#about" className="text-gray-700 hover:text-cyan-600 font-medium px-2 py-1">About Us</a>
-                <a href="#resources" className="text-gray-700 hover:text-cyan-600 font-medium px-2 py-1">Resources</a>
+                <a href="/blog" className="text-gray-700 hover:text-cyan-600 font-medium px-2 py-1">Blog</a>
                 <a href="#contact" className="text-gray-700 hover:text-cyan-600 font-medium px-2 py-1">Contact</a>
               </div>
             </div>
@@ -577,7 +577,7 @@ const LoginRegister: React.FC = () => {
               <ul className="space-y-2">
                 <li><a href="#services" className="text-gray-400 hover:text-cyan-400 transition-colors">Services</a></li>
                 <li><a href="#about" className="text-gray-400 hover:text-cyan-400 transition-colors">About Us</a></li>
-                <li><a href="#resources" className="text-gray-400 hover:text-cyan-400 transition-colors">Resources</a></li>
+                <li><a href="/blog" className="text-gray-400 hover:text-cyan-400 transition-colors">Blog</a></li>
                 <li><a href="#contact" className="text-gray-400 hover:text-cyan-400 transition-colors">Contact</a></li>
               </ul>
             </div>
@@ -586,10 +586,10 @@ const LoginRegister: React.FC = () => {
             <div>
               <h4 className="text-lg font-semibold mb-4">Legal & Social</h4>
               <ul className="space-y-2 mb-4">
-                <li><a href="#privacy" className="text-gray-400 hover:text-cyan-400 transition-colors">Privacy Policy</a></li>
-                <li><a href="#terms" className="text-gray-400 hover:text-cyan-400 transition-colors">Terms of Service</a></li>
-                <li><a href="#blog" className="text-gray-400 hover:text-cyan-400 transition-colors">Blog</a></li>
-                <li><a href="#careers" className="text-gray-400 hover:text-cyan-400 transition-colors">Careers</a></li>
+                <li><a href="/privacy" className="text-gray-400 hover:text-cyan-400 transition-colors">Privacy Policy</a></li>
+                <li><a href="/terms" className="text-gray-400 hover:text-cyan-400 transition-colors">Terms of Service</a></li>
+                <li><a href="/blog" className="text-gray-400 hover:text-cyan-400 transition-colors">Blog</a></li>
+                <li><a href="/careers" className="text-gray-400 hover:text-cyan-400 transition-colors">Careers</a></li>
               </ul>
               <div className="flex space-x-3">
                 <a href="#linkedin" className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-cyan-600 transition-colors">

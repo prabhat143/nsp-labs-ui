@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
-import { Fish, Mail, Lock, User, AlertCircle, Menu, X, TestTube, Droplets, Beaker, Zap } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, Menu, X, TestTube, Droplets, Beaker, Zap, Award, Shield, Clock, Users } from 'lucide-react';
 
 const LoginRegister: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -97,6 +97,29 @@ const LoginRegister: React.FC = () => {
     }
   ];
 
+  const aboutFeatures = [
+    {
+      icon: Award,
+      title: 'Certified Excellence',
+      description: 'ISO 17025 accredited laboratory with international quality standards'
+    },
+    {
+      icon: Shield,
+      title: 'Trusted Results',
+      description: 'Over 15 years of experience in aquaculture testing and analysis'
+    },
+    {
+      icon: Clock,
+      title: 'Fast Turnaround',
+      description: 'Quick and reliable testing with results delivered within 24-48 hours'
+    },
+    {
+      icon: Users,
+      title: 'Expert Team',
+      description: 'Highly qualified marine biologists and analytical chemists'
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50">
       {/* Header */}
@@ -104,12 +127,14 @@ const LoginRegister: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-2 rounded-lg">
-                <Fish className="h-6 w-6 text-white" />
-              </div>
+              <img 
+                src="/WhatsApp Image 2025-05-18 at 1.21.28 PM.jpeg" 
+                alt="NSP Labs Logo" 
+                className="h-10 w-10 rounded-full object-cover"
+              />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">NSP Labs</h1>
-                <p className="text-xs text-gray-500 hidden sm:block">Shrimp Testing Solutions</p>
+                <p className="text-xs text-gray-500 hidden sm:block">Analytical Labs Private Limited</p>
               </div>
             </div>
 
@@ -170,10 +195,16 @@ const LoginRegister: React.FC = () => {
                   </p>
                   
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                    <button className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    <button 
+                      onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
+                      className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                    >
                       Learn More
                     </button>
-                    <button className="border-2 border-cyan-500 text-cyan-600 px-8 py-3 rounded-lg font-semibold hover:bg-cyan-50 transition-all duration-200 transform hover:-translate-y-1">
+                    <button 
+                      onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
+                      className="border-2 border-cyan-500 text-cyan-600 px-8 py-3 rounded-lg font-semibold hover:bg-cyan-50 transition-all duration-200 transform hover:-translate-y-1"
+                    >
                       Request a Test
                     </button>
                   </div>
@@ -185,7 +216,11 @@ const LoginRegister: React.FC = () => {
                 <div className="w-full max-w-2xl bg-white/95 backdrop-blur-xl border border-blue-200 rounded-3xl shadow-2xl p-12 lg:p-16">
                   <div className="text-center mb-10">
                     <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full mb-6">
-                      <Fish className="h-10 w-10 text-white" />
+                      <img 
+                        src="/WhatsApp Image 2025-05-18 at 1.21.28 PM.jpeg" 
+                        alt="NSP Labs Logo" 
+                        className="h-12 w-12 rounded-full object-cover"
+                      />
                     </div>
                     <h3 className="text-3xl font-bold text-gray-900 mb-3">Welcome Back</h3>
                     <p className="text-gray-600 text-lg">Access your testing dashboard</p>
@@ -267,6 +302,104 @@ const LoginRegister: React.FC = () => {
         </div>
       </section>
 
+      {/* About Us Section */}
+      <section id="about" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+              About NSP Labs
+            </h2>
+            <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+              NSP Analytical Labs Private Limited is a premier testing facility specializing in comprehensive aquaculture analysis. 
+              We provide accurate, reliable solutions for the shrimp farming industry with state-of-the-art technology and expert knowledge.
+            </p>
+          </div>
+
+          {/* Company Story */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold text-gray-900">Our Mission</h3>
+              <p className="text-gray-600 leading-relaxed">
+                At NSP Labs, we are committed to ensuring the highest quality standards in aquaculture through precise analytical testing. 
+                Our mission is to support sustainable shrimp farming practices by providing farmers, exporters, and processors with 
+                reliable testing services that meet international standards.
+              </p>
+              <p className="text-gray-600 leading-relaxed">
+                We understand the critical importance of quality control in the aquaculture industry. Our comprehensive testing 
+                solutions help identify potential issues early, ensuring product safety, compliance with regulations, and 
+                maintaining the reputation of your brand in global markets.
+              </p>
+            </div>
+            <div className="space-y-6">
+              <h3 className="text-2xl font-bold text-gray-900">Our Vision</h3>
+              <p className="text-gray-600 leading-relaxed">
+                To be the leading analytical laboratory in the aquaculture sector, recognized for our technical excellence, 
+                innovative solutions, and unwavering commitment to quality. We envision a future where every shrimp farm 
+                has access to world-class testing services that promote sustainable and profitable operations.
+              </p>
+              <p className="text-gray-600 leading-relaxed">
+                Through continuous investment in technology, training, and research, we strive to stay at the forefront of 
+                analytical science, providing our clients with the most advanced and accurate testing capabilities available.
+              </p>
+            </div>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+            {aboutFeatures.map((feature, index) => (
+              <div
+                key={index}
+                className="group bg-white rounded-xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-blue-100"
+              >
+                <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <feature.icon className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Expertise Section */}
+          <div className="bg-white rounded-2xl p-8 lg:p-12 shadow-lg">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Expertise</h3>
+              <p className="text-gray-600 max-w-3xl mx-auto">
+                With over 15 years of experience in aquaculture testing, our team of marine biologists, analytical chemists, 
+                and quality assurance specialists brings unparalleled expertise to every analysis.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-cyan-600 mb-2">15+</div>
+                <div className="text-gray-600">Years of Experience</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-cyan-600 mb-2">10,000+</div>
+                <div className="text-gray-600">Samples Tested</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-cyan-600 mb-2">500+</div>
+                <div className="text-gray-600">Satisfied Clients</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-cyan-600 mb-2">24-48h</div>
+                <div className="text-gray-600">Average Turnaround</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-cyan-600 mb-2">ISO 17025</div>
+                <div className="text-gray-600">Accredited</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-cyan-600 mb-2">99.9%</div>
+                <div className="text-gray-600">Accuracy Rate</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Services Section */}
       <section id="services" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -303,12 +436,14 @@ const LoginRegister: React.FC = () => {
             {/* Company Info */}
             <div className="lg:col-span-2">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-2 rounded-lg">
-                  <Fish className="h-6 w-6 text-white" />
-                </div>
+                <img 
+                  src="/WhatsApp Image 2025-05-18 at 1.21.28 PM.jpeg" 
+                  alt="NSP Labs Logo" 
+                  className="h-10 w-10 rounded-full object-cover"
+                />
                 <div>
                   <h3 className="text-xl font-bold">NSP Labs</h3>
-                  <p className="text-gray-400 text-sm">Shrimp Testing Solutions</p>
+                  <p className="text-gray-400 text-sm">Analytical Labs Private Limited</p>
                 </div>
               </div>
               <p className="text-gray-400 mb-4 max-w-md">
@@ -354,7 +489,7 @@ const LoginRegister: React.FC = () => {
 
           <div className="border-t border-gray-800 mt-12 pt-8 text-center">
             <p className="text-gray-400 text-sm">
-              © 2024 NSP Labs - Shrimp Testing Solutions. All rights reserved.
+              © 2024 NSP Analytical Labs Private Limited. All rights reserved.
             </p>
           </div>
         </div>

@@ -3,7 +3,6 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationBell from './NotificationBell';
 import { 
-  Fish, 
   User, 
   FlaskConical, 
   FileText, 
@@ -57,12 +56,16 @@ const Layout: React.FC = () => {
                 )}
               </button>
               
-              <div className="bg-cyan-500 p-2 rounded-lg">
-                <Fish className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">NSP Labs</h1>
-                <p className="text-xs text-gray-500 hidden sm:block">Shrimp Testing Solutions</p>
+              <div className="flex items-center space-x-3">
+                <img 
+                  src="/WhatsApp Image 2025-05-18 at 1.21.28 PM.jpeg" 
+                  alt="NSP Labs Logo" 
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">NSP Labs</h1>
+                  <p className="text-xs text-gray-500 hidden sm:block">Analytical Labs Private Limited</p>
+                </div>
               </div>
             </div>
             

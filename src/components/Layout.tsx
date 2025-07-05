@@ -158,18 +158,6 @@ const Layout: React.FC = () => {
     setIsMobileMenuOpen(false); // Close mobile menu after navigation
   };
 
-  // Test notification function for debugging
-  const testNotification = () => {
-    console.log('Test notification triggered from Layout');
-    addNotification({
-      type: 'sample_assigned',
-      title: 'Test Agent Assignment',
-      message: `Agent lab-tech-001 has been assigned to your sample`,
-      sampleId: 'test-sample-123',
-      data: { agent: 'lab-tech-001' }
-    });
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
       {/* Header */}
@@ -204,12 +192,6 @@ const Layout: React.FC = () => {
             
             <div className="flex items-center space-x-4">
               <NotificationBell />
-              <button
-                onClick={testNotification}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-              >
-                Test
-              </button>
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                 <p className="text-xs text-gray-500">{user?.email}</p>

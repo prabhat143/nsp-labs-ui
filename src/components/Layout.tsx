@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
+import { SamplesProvider } from '../contexts/SamplesContext';
 import { apiService } from '../services/api';
 import { SampleSubmission } from '../types';
 import NotificationBell from './NotificationBell';
@@ -24,6 +25,11 @@ const Layout: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const previousSamplesRef = useRef<SampleSubmission[]>([]);
   const [lastFetch, setLastFetch] = useState<number>(0);
+  
+  // Samples state for global context
+  const [samples, setSamples] = useState<SampleSubmission[]>([]);
+  const [samplesLoading, setSamplesLoading] = useState(true);
+  const [samplesError, setSamplesError] = useState<string | null>(null);
 
   // Global polling for sample updates - runs on all pages
   useEffect(() => {
@@ -37,10 +43,13 @@ const Layout: React.FC = () => {
       }
 
       try {
+        setSamplesError(null);
         setLastFetch(now);
         const sampleSubmissions = await apiService.getSampleSubmissions(user.id);
         
-        console.log('Layout polling - fetched samples:', sampleSubmissions.length);
+        // Update global samples state
+        setSamples(sampleSubmissions);
+        setSamplesLoading(false);
         
         // Compare with previous samples to detect changes and generate notifications
         if (isRefresh && previousSamplesRef.current.length > 0) {
@@ -123,6 +132,8 @@ const Layout: React.FC = () => {
         previousSamplesRef.current = sampleSubmissions;
       } catch (err) {
         console.error('Failed to fetch samples for notifications:', err);
+        setSamplesError('Failed to fetch sample data');
+        setSamplesLoading(false);
       }
     };
 
@@ -272,7 +283,9 @@ const Layout: React.FC = () => {
         {/* Main Content */}
         <main className="flex-1 p-4 lg:p-8">
           <div className="max-w-6xl mx-auto">
-            <Outlet />
+            <SamplesProvider samples={samples} loading={samplesLoading} error={samplesError}>
+              <Outlet />
+            </SamplesProvider>
           </div>
         </main>
       </div>

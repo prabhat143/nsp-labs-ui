@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { apiService } from '../services/api';
-import { SampleSubmission } from '../types';
+import { useSamples } from '../contexts/SamplesContext';
 import { 
   User, 
   Upload, 
@@ -17,31 +16,7 @@ import {
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [samples, setSamples] = useState<SampleSubmission[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchSamples = async () => {
-      if (!user?.id) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setError(null);
-        const sampleSubmissions = await apiService.getSampleSubmissions(user.id);
-        setSamples(sampleSubmissions);
-      } catch (err) {
-        console.error('Failed to fetch sample submissions:', err);
-        setError('Failed to load sample data. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSamples();
-  }, [user?.id]);
+  const { samples, loading, error } = useSamples();
   
   // Calculate statistics from API data
   const pendingSamples = samples.filter(s => s.status.toUpperCase() === 'PENDING').length;

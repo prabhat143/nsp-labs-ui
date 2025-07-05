@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { apiService } from '../services/api';
-import { SampleSubmission } from '../types';
+import { useSamples } from '../contexts/SamplesContext';
 import { 
   FlaskConical, 
   Clock, 
@@ -17,12 +15,9 @@ import {
 } from 'lucide-react';
 
 const SampleHistory: React.FC = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [samples, setSamples] = useState<SampleSubmission[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { samples, loading, error } = useSamples();
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [highlightedSample, setHighlightedSample] = useState<string | null>(null);
 
@@ -40,28 +35,6 @@ const SampleHistory: React.FC = () => {
       setTimeout(() => setHighlightedSample(null), 3000);
     }
   }, [searchParams]);
-
-  useEffect(() => {
-    const fetchSamples = async () => {
-      if (!user?.id) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setError(null);
-        const sampleSubmissions = await apiService.getSampleSubmissions(user.id);
-        setSamples(sampleSubmissions);
-      } catch (err) {
-        console.error('Failed to fetch sample submissions:', err);
-        setError('Failed to load sample history. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSamples();
-  }, [user?.id]);
 
   const getStatusIcon = (status: string) => {
     switch (status.toUpperCase()) {

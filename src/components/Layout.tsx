@@ -191,7 +191,7 @@ const Layout: React.FC = () => {
               
               <div className="flex items-center space-x-3">
                 <img 
-                  src="/WhatsApp Image 2025-05-18 at 1.21.28 PM.jpeg" 
+                  src="/favicon.jpeg" 
                   alt="NSP Labs Logo" 
                   className="h-10 w-10 rounded-full object-cover"
                 />

@@ -306,7 +306,10 @@ const SampleHistory: React.FC = () => {
                         <div>
                           <span className="font-medium text-gray-700">Coordinates:</span>
                           <span className="ml-2 text-gray-600">
-                            {sample.coordinate.lat.toFixed(6)}, {sample.coordinate.lng.toFixed(6)}
+                            {sample.coordinate?.lat && sample.coordinate?.lng 
+                              ? `${sample.coordinate.lat.toFixed(6)}, ${sample.coordinate.lng.toFixed(6)}`
+                              : 'Not available'
+                            }
                           </span>
                         </div>
                         {sample.assigned && (

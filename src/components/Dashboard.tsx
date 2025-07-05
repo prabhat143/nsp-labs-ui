@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useNotifications } from '../contexts/NotificationContext';
 import { apiService } from '../services/api';
 import { SampleSubmission } from '../types';
 import { 
@@ -18,78 +17,21 @@ import {
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { addNotification } = useNotifications();
   const [samples, setSamples] = useState<SampleSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const previousSamplesRef = useRef<SampleSubmission[]>([]);
-  const [lastFetch, setLastFetch] = useState<number>(0);
 
   useEffect(() => {
-    const fetchSamples = async (isRefresh = false) => {
+    const fetchSamples = async () => {
       if (!user?.id) {
         setLoading(false);
         return;
       }
 
-      // Prevent multiple simultaneous requests
-      const now = Date.now();
-      if (isRefresh && now - lastFetch < 100) { // Minimum 100ms between requests
-        return;
-      }
-
       try {
         setError(null);
-        setLastFetch(now);
         const sampleSubmissions = await apiService.getSampleSubmissions(user.id);
-        
-        // Compare with previous samples to detect changes and generate notifications
-        if (isRefresh && previousSamplesRef.current.length > 0) {
-          const previousSamples = previousSamplesRef.current;
-          
-          sampleSubmissions.forEach((currentSample) => {
-            const previousSample = previousSamples.find(p => p.id === currentSample.id);
-            
-            if (previousSample) {
-              // Check for status changes
-              if (previousSample.status !== currentSample.status) {
-                addNotification({
-                  type: 'sample_status_change',
-                  title: 'Sample Status Updated',
-                  message: `Sample status changed from ${previousSample.status.toUpperCase()} to ${currentSample.status.toUpperCase()}`,
-                  sampleId: currentSample.id,
-                  data: { previousStatus: previousSample.status, newStatus: currentSample.status }
-                });
-              }
-              
-              // Check for agent assignment changes
-              if (previousSample.assigned !== currentSample.assigned && currentSample.assigned) {
-                addNotification({
-                  type: 'sample_assigned',
-                  title: 'Agent Assigned',
-                  message: `Agent ${currentSample.assigned} has been assigned to your sample`,
-                  sampleId: currentSample.id,
-                  data: { agent: currentSample.assigned }
-                });
-              }
-              
-              // Check for completion
-              if (previousSample.status !== 'COMPLETED' && currentSample.status === 'COMPLETED') {
-                addNotification({
-                  type: 'sample_completed',
-                  title: 'Sample Completed',
-                  message: `Your sample testing has been completed. Report is now available.`,
-                  sampleId: currentSample.id,
-                  data: { completedAt: new Date() }
-                });
-              }
-            }
-          });
-        }
-        
-        // Update samples state and previous samples reference
         setSamples(sampleSubmissions);
-        previousSamplesRef.current = sampleSubmissions;
       } catch (err) {
         console.error('Failed to fetch sample submissions:', err);
         setError('Failed to load sample data. Please try again.');
@@ -98,20 +40,7 @@ const Dashboard: React.FC = () => {
       }
     };
 
-    // Initial fetch
     fetchSamples();
-
-    // Set up polling for real-time updates every 200ms
-    const pollInterval = setInterval(() => {
-      if (user?.id) {
-        fetchSamples(true); // Mark as refresh
-      }
-    }, 200); // 200 milliseconds
-
-    // Cleanup interval on unmount
-    return () => {
-      clearInterval(pollInterval);
-    };
   }, [user?.id]);
   
   // Calculate statistics from API data

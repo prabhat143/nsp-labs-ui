@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotifications } from '../contexts/NotificationContext';
+import { apiService } from '../services/api';
+import { SampleSubmission } from '../types';
 import NotificationBell from './NotificationBell';
 import { 
   User, 
@@ -15,9 +18,127 @@ import {
 
 const Layout: React.FC = () => {
   const { user, logout } = useAuth();
+  const { addNotification } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const previousSamplesRef = useRef<SampleSubmission[]>([]);
+  const [lastFetch, setLastFetch] = useState<number>(0);
+
+  // Global polling for sample updates - runs on all pages
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchSamplesForNotifications = async (isRefresh = false) => {
+      // Prevent multiple simultaneous requests
+      const now = Date.now();
+      if (isRefresh && now - lastFetch < 100) { // Minimum 100ms between requests
+        return;
+      }
+
+      try {
+        setLastFetch(now);
+        const sampleSubmissions = await apiService.getSampleSubmissions(user.id);
+        
+        console.log('Layout polling - fetched samples:', sampleSubmissions.length);
+        
+        // Compare with previous samples to detect changes and generate notifications
+        if (isRefresh && previousSamplesRef.current.length > 0) {
+          const previousSamples = previousSamplesRef.current;
+          console.log('Layout polling - comparing with previous samples:', previousSamples.length);
+          
+          sampleSubmissions.forEach((currentSample) => {
+            const previousSample = previousSamples.find(p => p.id === currentSample.id);
+            
+            if (previousSample) {
+              console.log(`Comparing sample ${currentSample.id}:`, {
+                previousStatus: previousSample.status,
+                currentStatus: currentSample.status,
+                previousAssigned: previousSample.assigned,
+                currentAssigned: currentSample.assigned
+              });
+              
+              // Check for status changes
+              if (previousSample.status !== currentSample.status) {
+                console.log('Status change detected, adding notification');
+                addNotification({
+                  type: 'sample_status_change',
+                  title: 'Sample Status Updated',
+                  message: `Sample status changed from ${previousSample.status.toUpperCase()} to ${currentSample.status.toUpperCase()}`,
+                  sampleId: currentSample.id,
+                  data: { previousStatus: previousSample.status, newStatus: currentSample.status }
+                });
+              }
+              
+              // Check for agent assignment changes - improved logic
+              if (previousSample.assigned !== currentSample.assigned) {
+                console.log('Agent assignment change detected');
+                if (currentSample.assigned && !previousSample.assigned) {
+                  // Agent was assigned
+                  console.log('Agent assigned, adding notification');
+                  addNotification({
+                    type: 'sample_assigned',
+                    title: 'Agent Assigned',
+                    message: `Agent ${currentSample.assigned} has been assigned to your sample`,
+                    sampleId: currentSample.id,
+                    data: { agent: currentSample.assigned }
+                  });
+                } else if (!currentSample.assigned && previousSample.assigned) {
+                  // Agent was unassigned
+                  console.log('Agent unassigned, adding notification');
+                  addNotification({
+                    type: 'sample_status_change',
+                    title: 'Agent Unassigned',
+                    message: `Agent ${previousSample.assigned} has been unassigned from your sample`,
+                    sampleId: currentSample.id,
+                    data: { previousAgent: previousSample.assigned }
+                  });
+                } else if (currentSample.assigned && previousSample.assigned && currentSample.assigned !== previousSample.assigned) {
+                  // Agent was changed
+                  addNotification({
+                    type: 'sample_assigned',
+                    title: 'Agent Changed',
+                    message: `Agent changed from ${previousSample.assigned} to ${currentSample.assigned}`,
+                    sampleId: currentSample.id,
+                    data: { previousAgent: previousSample.assigned, newAgent: currentSample.assigned }
+                  });
+                }
+              }
+              
+              // Check for completion
+              if (previousSample.status !== 'COMPLETED' && currentSample.status === 'COMPLETED') {
+                addNotification({
+                  type: 'sample_completed',
+                  title: 'Sample Completed',
+                  message: `Your sample testing has been completed. Report is now available.`,
+                  sampleId: currentSample.id,
+                  data: { completedAt: new Date() }
+                });
+              }
+            }
+          });
+        }
+        
+        // Update previous samples reference
+        previousSamplesRef.current = sampleSubmissions;
+      } catch (err) {
+        console.error('Failed to fetch samples for notifications:', err);
+      }
+    };
+
+    // Initial fetch
+    fetchSamplesForNotifications();
+
+    // Set up polling for real-time updates every 200ms
+    const pollInterval = setInterval(() => {
+      fetchSamplesForNotifications(true); // Mark as refresh
+    }, 200); // 200 milliseconds
+
+    // Cleanup interval on unmount
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, [user?.id, addNotification, lastFetch]);
 
   const handleLogout = () => {
     logout();
@@ -35,6 +156,18 @@ const Layout: React.FC = () => {
   const handleMenuItemClick = (path: string) => {
     navigate(path);
     setIsMobileMenuOpen(false); // Close mobile menu after navigation
+  };
+
+  // Test notification function for debugging
+  const testNotification = () => {
+    console.log('Test notification triggered from Layout');
+    addNotification({
+      type: 'sample_assigned',
+      title: 'Test Agent Assignment',
+      message: `Agent lab-tech-001 has been assigned to your sample`,
+      sampleId: 'test-sample-123',
+      data: { agent: 'lab-tech-001' }
+    });
   };
 
   return (
@@ -71,6 +204,12 @@ const Layout: React.FC = () => {
             
             <div className="flex items-center space-x-4">
               <NotificationBell />
+              <button
+                onClick={testNotification}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+              >
+                Test
+              </button>
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                 <p className="text-xs text-gray-500">{user?.email}</p>

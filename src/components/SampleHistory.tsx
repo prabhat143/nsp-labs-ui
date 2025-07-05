@@ -24,7 +24,6 @@ const SampleHistory: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>('all');
-  const [lastFetch, setLastFetch] = useState<number>(0);
   const [highlightedSample, setHighlightedSample] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,21 +42,14 @@ const SampleHistory: React.FC = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    const fetchSamples = async (isRefresh = false) => {
+    const fetchSamples = async () => {
       if (!user?.id) {
         setLoading(false);
         return;
       }
 
-      // Prevent multiple simultaneous requests
-      const now = Date.now();
-      if (isRefresh && now - lastFetch < 100) { // Minimum 100ms between requests
-        return;
-      }
-
       try {
         setError(null);
-        setLastFetch(now);
         const sampleSubmissions = await apiService.getSampleSubmissions(user.id);
         setSamples(sampleSubmissions);
       } catch (err) {
@@ -68,20 +60,7 @@ const SampleHistory: React.FC = () => {
       }
     };
 
-    // Initial fetch
     fetchSamples();
-
-    // Set up polling for real-time updates every 200ms
-    const pollInterval = setInterval(() => {
-      if (user?.id) {
-        fetchSamples(true); // Mark as refresh
-      }
-    }, 200); // 200 milliseconds
-
-    // Cleanup interval on unmount
-    return () => {
-      clearInterval(pollInterval);
-    };
   }, [user?.id]);
 
   const getStatusIcon = (status: string) => {

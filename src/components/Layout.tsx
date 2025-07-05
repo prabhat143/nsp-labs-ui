@@ -32,7 +32,7 @@ const Layout: React.FC = () => {
     const fetchSamplesForNotifications = async (isRefresh = false) => {
       // Prevent multiple simultaneous requests
       const now = Date.now();
-      if (isRefresh && now - lastFetch < 100) { // Minimum 100ms between requests
+      if (isRefresh && now - lastFetch < 2000) { // Minimum 2 seconds between requests
         return;
       }
 
@@ -129,10 +129,10 @@ const Layout: React.FC = () => {
     // Initial fetch
     fetchSamplesForNotifications();
 
-    // Set up polling for real-time updates every 200ms
+    // Set up polling for real-time updates every 5 seconds
     const pollInterval = setInterval(() => {
       fetchSamplesForNotifications(true); // Mark as refresh
-    }, 200); // 200 milliseconds
+    }, 5000); // 5 seconds - more reasonable polling interval
 
     // Cleanup interval on unmount
     return () => {

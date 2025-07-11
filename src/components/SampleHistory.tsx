@@ -62,6 +62,7 @@ const SampleHistory: React.FC = () => {
   const getStatusIcon = (status: string) => {
     switch (status.toUpperCase()) {
       case 'PENDING':
+      case 'COLLECTING':
         return <Clock className="h-5 w-5 text-yellow-600" />;
       case 'PROCESSING':
       case 'TESTING':
@@ -76,6 +77,7 @@ const SampleHistory: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
       case 'PENDING':
+      case 'COLLECTING':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'PROCESSING':
       case 'TESTING':
@@ -91,6 +93,8 @@ const SampleHistory: React.FC = () => {
     switch (status.toUpperCase()) {
       case 'PENDING':
         return 'Pending';
+      case 'COLLECTING':
+        return 'Collecting';
       case 'PROCESSING':
       case 'TESTING':
         return 'Testing';
@@ -476,7 +480,7 @@ const SampleHistory: React.FC = () => {
                       <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(sample.status)}`}>
                         {getStatusLabel(sample.status)}
                       </span>
-                      {(sample.status.toUpperCase() === 'PROCESSING' || sample.status.toUpperCase() === 'TESTING') && sample.assigned && (
+                      {(sample.status.toUpperCase() === 'COLLECTING' || sample.status.toUpperCase() === 'TESTING') && sample.assigned && (
                         <div className="relative group">
                           <span className="px-3 py-1 rounded-full text-xs font-medium border bg-blue-100 text-blue-800 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors flex items-center space-x-1">
                             <User className="h-3 w-3" />

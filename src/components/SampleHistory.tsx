@@ -343,68 +343,70 @@ const SampleHistory: React.FC = () => {
         </div>
 
         {/* Statistics */}
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-          {[
-            { 
-              label: 'Total Samples', 
-              value: samples.length, 
-              color: 'bg-blue-100 text-blue-800',
-              filterKey: 'all',
-              clickable: true
-            },
-            { 
-              label: 'Pending', 
-              value: samples.filter(s => {
-                const status = s.status.toUpperCase();
-                return status === 'PENDING' || status === 'COLLECTING';
-              }).length, 
-              color: 'bg-yellow-100 text-yellow-800',
-              filterKey: 'pending',
-              clickable: samples.filter(s => {
-                const status = s.status.toUpperCase();
-                return status === 'PENDING' || status === 'COLLECTING';
-              }).length > 0
-            },
-            // Remove Collecting tile
-            { 
-              label: 'Collected',
-              value: samples.filter(s => s.status.toUpperCase() === 'COLLECTED').length,
-              color: 'bg-rose-100 text-rose-800',
-              filterKey: 'collected',
-              clickable: samples.filter(s => s.status.toUpperCase() === 'COLLECTED').length > 0
-            },
-            { 
-              label: 'Testing', 
-              value: samples.filter(s => s.status.toUpperCase() === 'PROCESSING' || s.status.toUpperCase() === 'TESTING').length, 
-              color: 'bg-purple-100 text-purple-800',
-              filterKey: 'testing',
-              clickable: samples.filter(s => s.status.toUpperCase() === 'PROCESSING' || s.status.toUpperCase() === 'TESTING').length > 0
-            },
-            { 
-              label: 'Completed', 
-              value: samples.filter(s => s.status.toUpperCase() === 'COMPLETED').length, 
-              color: 'bg-green-100 text-green-800',
-              filterKey: 'completed',
-              clickable: samples.filter(s => s.status.toUpperCase() === 'COMPLETED').length > 0
-            },
-          ].map((stat, index) => (
-            <div 
-              key={index} 
-              onClick={stat.clickable ? () => setActiveFilter(stat.filterKey) : undefined}
-              className={`${stat.color} rounded-lg p-3 lg:p-4 text-center transition-all duration-200 ${
-                stat.clickable 
-                  ? 'cursor-pointer hover:scale-105 transform hover:shadow-md' 
-                  : ''
-              } ${
-                activeFilter === stat.filterKey 
-                  ? 'ring-2 ring-blue-500 ring-offset-2' 
-                  : ''
-              }`}
-            >
-              <div className="text-lg lg:text-2xl font-bold">{stat.value}</div>
-              <div className="text-xs lg:text-sm font-medium">{stat.label}</div>
-            </div>
-          ))}
+        <div className="w-full">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 w-full">
+            {[
+              { 
+                label: 'Total Samples', 
+                value: samples.length, 
+                color: 'bg-blue-100 text-blue-800',
+                filterKey: 'all',
+                clickable: true
+              },
+              { 
+                label: 'Pending', 
+                value: samples.filter(s => {
+                  const status = s.status.toUpperCase();
+                  return status === 'PENDING' || status === 'COLLECTING';
+                }).length, 
+                color: 'bg-yellow-100 text-yellow-800',
+                filterKey: 'pending',
+                clickable: samples.filter(s => {
+                  const status = s.status.toUpperCase();
+                  return status === 'PENDING' || status === 'COLLECTING';
+                }).length > 0
+              },
+              // Remove Collecting tile
+              { 
+                label: 'Collected',
+                value: samples.filter(s => s.status.toUpperCase() === 'COLLECTED').length,
+                color: 'bg-rose-100 text-rose-800',
+                filterKey: 'collected',
+                clickable: samples.filter(s => s.status.toUpperCase() === 'COLLECTED').length > 0
+              },
+              { 
+                label: 'Testing', 
+                value: samples.filter(s => s.status.toUpperCase() === 'PROCESSING' || s.status.toUpperCase() === 'TESTING').length, 
+                color: 'bg-purple-100 text-purple-800',
+                filterKey: 'testing',
+                clickable: samples.filter(s => s.status.toUpperCase() === 'PROCESSING' || s.status.toUpperCase() === 'TESTING').length > 0
+              },
+              { 
+                label: 'Completed', 
+                value: samples.filter(s => s.status.toUpperCase() === 'COMPLETED').length, 
+                color: 'bg-green-100 text-green-800',
+                filterKey: 'completed',
+                clickable: samples.filter(s => s.status.toUpperCase() === 'COMPLETED').length > 0
+              },
+            ].map((stat, index) => (
+              <div
+                key={index}
+                onClick={stat.clickable ? () => setActiveFilter(stat.filterKey) : undefined}
+                className={`${stat.color} rounded-lg p-3 lg:p-4 text-center flex flex-col items-center justify-center transition-all duration-200 w-full col-span-1 ${
+                  stat.clickable
+                    ? 'cursor-pointer hover:scale-105 transform hover:shadow-md'
+                    : ''
+                } ${
+                  activeFilter === stat.filterKey
+                    ? 'ring-2 ring-blue-500 ring-offset-2'
+                    : ''
+                }`}
+              >
+                <div className="text-lg lg:text-2xl font-bold mb-1">{stat.value}</div>
+                <div className="text-xs lg:text-sm font-medium">{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

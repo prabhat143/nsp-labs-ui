@@ -14,6 +14,8 @@ import {
   User,
   Download
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const SampleHistory: React.FC = () => {
   const navigate = useNavigate();
@@ -26,6 +28,14 @@ const SampleHistory: React.FC = () => {
   const [toDate, setToDate] = useState('');
   const [fileType, setFileType] = useState('csv');
   const [summaryType, setSummaryType] = useState('all'); // all, pending, collecting, collected, testing, completed
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [pendingPdf, setPendingPdf] = useState<{
+    filtered: any[];
+    fromDate: string;
+    toDate: string;
+    summaryType: string;
+  } | null>(null);
 
   useEffect(() => {
     const statusFilter = searchParams.get('status');
@@ -151,8 +161,81 @@ const SampleHistory: React.FC = () => {
       a.download = fileName;
       a.click();
       URL.revokeObjectURL(url);
+    } else if (fileType === 'pdf') {
+      setPendingPdf({ filtered, fromDate, toDate, summaryType });
+      setShowSummaryModal(false);
     }
-    setShowSummaryModal(false);
+  };
+
+  // Generate PDF after modal closes
+  useEffect(() => {
+    if (pendingPdf) {
+      const { filtered, fromDate, toDate, summaryType } = pendingPdf;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'A4' });
+      doc.setFontSize(20);
+      doc.setTextColor('#2563eb'); // blue-600
+      doc.text('Sample Summary Report', 40, 50);
+      doc.setFontSize(12);
+      doc.setTextColor('#222');
+      doc.text(`Summary Type: ${summaryType.charAt(0).toUpperCase() + summaryType.slice(1)}`, 40, 75);
+      doc.text(`Date Range: ${fromDate || 'NA'} to ${toDate || 'NA'}`, 40, 95);
+      autoTable(doc, {
+        startY: 120,
+        head: [[
+          'Sample ID', 'Status', 'Sampler Name', 'Location', 'Category', 'Sub-category', 'Created At', 'Updated At'
+        ]],
+        body: filtered.map(s => [
+          s.id,
+          s.status,
+          s.samplerName,
+          s.samplerLocation,
+          s.shrimpCategory,
+          s.shrimpSubCategory,
+          new Date(s.createdAt).toLocaleString(),
+          new Date(s.updatedAt).toLocaleString()
+        ]),
+        headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' }, // blue-600
+        bodyStyles: { fillColor: [240, 249, 255], textColor: [30, 41, 59] }, // blue-50, slate-800
+        alternateRowStyles: { fillColor: [224, 231, 255] }, // blue-100
+        styles: { font: 'helvetica', fontSize: 10, cellPadding: 6 },
+        margin: { left: 40, right: 40 },
+        tableLineColor: [37, 99, 235],
+        tableLineWidth: 0.5,
+        didParseCell: function (data) {
+          if (data.section === 'body' && data.column.index === 1) {
+            const raw = data.cell.raw;
+            if (typeof raw === 'string') {
+              const status = raw.toUpperCase();
+              if (status === 'PENDING') data.cell.styles.fillColor = [253, 224, 71]; // yellow-300
+              else if (status === 'COLLECTING') data.cell.styles.fillColor = [244, 114, 182]; // pink-400
+              else if (status === 'COLLECTED') data.cell.styles.fillColor = [251, 113, 133]; // rose-400
+              else if (status === 'PROCESSING' || status === 'TESTING') data.cell.styles.fillColor = [96, 165, 250]; // blue-400
+              else if (status === 'COMPLETED') data.cell.styles.fillColor = [34, 197, 94]; // green-500
+            }
+          }
+        }
+      });
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      setPdfBlob(blob);
+      setPdfPreviewUrl(url);
+      setPendingPdf(null);
+    }
+  }, [pendingPdf]);
+
+  const handleClosePdfPreview = () => {
+    setPdfPreviewUrl(null);
+    if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+  };
+
+  const handleDownloadPdf = () => {
+    if (pdfBlob) {
+      const fileName = `SampleSummary-${summaryType.charAt(0).toUpperCase() + summaryType.slice(1)}-${fromDate || 'NA'}-to-${toDate || 'NA'}.pdf`;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(pdfBlob);
+      a.download = fileName;
+      a.click();
+    }
   };
 
   // Filter samples based on active filter
@@ -225,6 +308,25 @@ const SampleHistory: React.FC = () => {
               >
                 <Download className="w-4 h-4" />
                 <span>Generate</span>
+              </button>
+            </div>
+          </div>
+        )}
+        {/* PDF Preview Modal */}
+        {pdfPreviewUrl && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+            <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-4xl relative flex flex-col">
+              <button onClick={handleClosePdfPreview} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+              <h2 className="text-lg font-bold mb-4 text-gray-900">Preview Sample Summary PDF</h2>
+              <div className="flex-1 overflow-auto border rounded-lg mb-4" style={{ minHeight: 400, maxHeight: 600 }}>
+                <iframe src={pdfPreviewUrl} title="PDF Preview" className="w-full h-full min-h-[400px]" />
+              </div>
+              <button
+                onClick={handleDownloadPdf}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-semibold shadow"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download PDF</span>
               </button>
             </div>
           </div>
@@ -438,38 +540,33 @@ const SampleHistory: React.FC = () => {
                           <span className="ml-2 text-gray-600">{sample.samplerName}</span>
                         </div>
                         <div>
-                          <span className="font-medium text-gray-700">Phone Number:</span>
-                          <span className="ml-2 text-gray-600">{sample.phoneNumber}</span>
+                          <span className="font-medium text-gray-700">Status:</span>
+                          <span className="ml-2 text-gray-600">{getStatusLabel(sample.status)}</span>
                         </div>
                         <div>
-                          <span className="font-medium text-gray-700">Email:</span>
-                          <span className="ml-2 text-gray-600">{sample.emailAddress || 'Not provided'}</span>
+                          <span className="font-medium text-gray-700">Created At:</span>
+                          <span className="ml-2 text-gray-600">{new Date(sample.createdAt).toLocaleString()}</span>
                         </div>
                         <div>
-                          <span className="font-medium text-gray-700">Coordinates:</span>
-                          <span className="ml-2 text-gray-600">
-                            {sample.coordinate?.lat && sample.coordinate?.lng 
-                              ? `${sample.coordinate.lat.toFixed(6)}, ${sample.coordinate.lng.toFixed(6)}`
-                              : 'Not available'
-                            }
-                          </span>
+                          <span className="font-medium text-gray-700">Updated At:</span>
+                          <span className="ml-2 text-gray-600">{new Date(sample.updatedAt).toLocaleString()}</span>
                         </div>
-                        {sample.assigned && (
-                          <div>
-                            <span className="font-medium text-gray-700">Assigned Agent:</span>
-                            <span className="ml-2 text-gray-600">{sample.assigned}</span>
-                          </div>
-                        )}
-                        <div className="md:col-span-2">
-                          <span className="font-medium text-gray-700">Last Updated:</span>
+                        <div>
+                          <span className="font-medium text-gray-700">Location:</span>
+                          <span className="ml-2 text-gray-600">{sample.samplerLocation}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Category:</span>
+                          <span className="ml-2 text-gray-600">{sample.shrimpCategory}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Sub-category:</span>
+                          <span className="ml-2 text-gray-600">{sample.shrimpSubCategory}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Agent Assigned:</span>
                           <span className="ml-2 text-gray-600">
-                            {new Date(sample.updatedAt).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                            {sample.assigned ? 'Yes' : 'No'}
                           </span>
                         </div>
                       </div>

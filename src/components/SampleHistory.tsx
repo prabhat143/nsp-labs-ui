@@ -27,7 +27,7 @@ const SampleHistory: React.FC = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [fileType, setFileType] = useState('csv');
-  const [summaryType, setSummaryType] = useState('all'); // all, pending, collecting, collected, testing, completed
+  const [summaryType, setSummaryType] = useState('all'); // all, pending, collected, testing, completed
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [pendingPdf, setPendingPdf] = useState<{
@@ -125,8 +125,7 @@ const SampleHistory: React.FC = () => {
     if (summaryType !== 'all') {
       filtered = filtered.filter(s => {
         switch (summaryType) {
-          case 'pending': return s.status.toUpperCase() === 'PENDING';
-          case 'collecting': return s.status.toUpperCase() === 'COLLECTING';
+          case 'pending': return s.status.toUpperCase() === 'PENDING' || s.status.toUpperCase() === 'COLLECTING';
           case 'collected': return s.status.toUpperCase() === 'COLLECTED';
           case 'testing': return s.status.toUpperCase() === 'PROCESSING' || s.status.toUpperCase() === 'TESTING';
           case 'completed': return s.status.toUpperCase() === 'COMPLETED';
@@ -242,9 +241,11 @@ const SampleHistory: React.FC = () => {
   const getFilteredSamples = () => {
     switch (activeFilter) {
       case 'pending':
-        return samples.filter(s => s.status.toUpperCase() === 'PENDING');
-      case 'collecting':
-        return samples.filter(s => s.status.toUpperCase() === 'COLLECTING');
+        return samples.filter(s => {
+          const status = s.status.toUpperCase();
+          return status === 'PENDING' || status === 'COLLECTING';
+        });
+      // Remove collecting case
       case 'collected':
         return samples.filter(s => s.status.toUpperCase() === 'COLLECTED');
       case 'testing':
@@ -289,7 +290,6 @@ const SampleHistory: React.FC = () => {
                 <select value={summaryType} onChange={e => setSummaryType(e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
                   <option value="all">All</option>
                   <option value="pending">Pending</option>
-                  <option value="collecting">Collecting</option>
                   <option value="collected">Collected</option>
                   <option value="testing">Testing</option>
                   <option value="completed">Completed</option>
@@ -354,18 +354,18 @@ const SampleHistory: React.FC = () => {
             },
             { 
               label: 'Pending', 
-              value: samples.filter(s => s.status.toUpperCase() === 'PENDING').length, 
+              value: samples.filter(s => {
+                const status = s.status.toUpperCase();
+                return status === 'PENDING' || status === 'COLLECTING';
+              }).length, 
               color: 'bg-yellow-100 text-yellow-800',
               filterKey: 'pending',
-              clickable: samples.filter(s => s.status.toUpperCase() === 'PENDING').length > 0
+              clickable: samples.filter(s => {
+                const status = s.status.toUpperCase();
+                return status === 'PENDING' || status === 'COLLECTING';
+              }).length > 0
             },
-            { 
-              label: 'Collecting',
-              value: samples.filter(s => s.status.toUpperCase() === 'COLLECTING').length,
-              color: 'bg-pink-100 text-pink-800',
-              filterKey: 'collecting',
-              clickable: samples.filter(s => s.status.toUpperCase() === 'COLLECTING').length > 0
-            },
+            // Remove Collecting tile
             { 
               label: 'Collected',
               value: samples.filter(s => s.status.toUpperCase() === 'COLLECTED').length,

@@ -11,7 +11,8 @@ import {
   FileText,
   MapPin,
   Tag,
-  User
+  User,
+  Download
 } from 'lucide-react';
 
 const SampleHistory: React.FC = () => {
@@ -20,6 +21,11 @@ const SampleHistory: React.FC = () => {
   const { samples, loading, error } = useSamples();
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [highlightedSample, setHighlightedSample] = useState<string | null>(null);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [fileType, setFileType] = useState('csv');
+  const [summaryType, setSummaryType] = useState('all'); // all, pending, collecting, collected, testing, completed
 
   useEffect(() => {
     const statusFilter = searchParams.get('status');
@@ -34,7 +40,14 @@ const SampleHistory: React.FC = () => {
       // Remove highlight after 3 seconds
       setTimeout(() => setHighlightedSample(null), 3000);
     }
-  }, [searchParams]);
+
+    // Set default fromDate (earliest sample date) and toDate (today)
+    if (samples.length > 0) {
+      const sorted = [...samples].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      setFromDate(sorted[0] ? new Date(sorted[0].createdAt).toISOString().slice(0, 10) : '');
+      setToDate(new Date().toISOString().slice(0, 10));
+    }
+  }, [searchParams, samples]);
 
   const getStatusIcon = (status: string) => {
     switch (status.toUpperCase()) {
@@ -82,6 +95,66 @@ const SampleHistory: React.FC = () => {
     navigate(`/timeline/${sampleId}`);
   };
 
+  const handleDownloadSummary = () => {
+    setShowSummaryModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowSummaryModal(false);
+  };
+
+  const handleGenerateSummary = () => {
+    // Filter samples by date range
+    const from = fromDate ? new Date(fromDate) : null;
+    const to = toDate ? new Date(toDate) : null;
+    let filtered = samples.filter(s => {
+      const created = new Date(s.createdAt);
+      return (!from || created >= from) && (!to || created <= to);
+    });
+    // Further filter by summaryType if not 'all'
+    if (summaryType !== 'all') {
+      filtered = filtered.filter(s => {
+        switch (summaryType) {
+          case 'pending': return s.status.toUpperCase() === 'PENDING';
+          case 'collecting': return s.status.toUpperCase() === 'COLLECTING';
+          case 'collected': return s.status.toUpperCase() === 'COLLECTED';
+          case 'testing': return s.status.toUpperCase() === 'PROCESSING' || s.status.toUpperCase() === 'TESTING';
+          case 'completed': return s.status.toUpperCase() === 'COMPLETED';
+          default: return true;
+        }
+      });
+    }
+    if (fileType === 'csv') {
+      // CSV header
+      const csvRows = [
+        ['Sample ID', 'Status', 'Sampler Name', 'Location', 'Category', 'Sub-category', 'Created At', 'Updated At']
+      ];
+      // CSV data
+      filtered.forEach(s => {
+        csvRows.push([
+          s.id,
+          s.status,
+          s.samplerName,
+          s.samplerLocation,
+          s.shrimpCategory,
+          s.shrimpSubCategory,
+          new Date(s.createdAt).toLocaleString(),
+          new Date(s.updatedAt).toLocaleString()
+        ]);
+      });
+      const csvContent = csvRows.map(e => e.map(x => `"${(x ?? '').toString().replace(/"/g, '""')}"`).join(',')).join('\n');
+      const fileName = `SampleSummary-${summaryType.charAt(0).toUpperCase() + summaryType.slice(1)}-${fromDate || 'NA'}-to-${toDate || 'NA'}.csv`;
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    setShowSummaryModal(false);
+  };
+
   // Filter samples based on active filter
   const getFilteredSamples = () => {
     switch (activeFilter) {
@@ -105,7 +178,58 @@ const SampleHistory: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-2xl shadow-lg p-6 lg:p-8">
+      <div className="bg-white rounded-2xl shadow-lg p-6 lg:p-8 relative">
+        {/* Download Summary Button - top right corner */}
+        <button
+          onClick={handleDownloadSummary}
+          className="absolute top-6 right-6 flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm shadow z-10"
+        >
+          <Download className="w-4 h-4" />
+          <span>Download Summary</span>
+        </button>
+        {/* Modal for summary options */}
+        {showSummaryModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+            <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-md relative">
+              <button onClick={handleCloseModal} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+              <h2 className="text-lg font-bold mb-4 text-gray-900">Download Sample Summary</h2>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+                <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+                <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Summary Type</label>
+                <select value={summaryType} onChange={e => setSummaryType(e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                  <option value="all">All</option>
+                  <option value="pending">Pending</option>
+                  <option value="collecting">Collecting</option>
+                  <option value="collected">Collected</option>
+                  <option value="testing">Testing</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">File Type</label>
+                <select value={fileType} onChange={e => setFileType(e.target.value)} className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                  <option value="csv">CSV</option>
+                  <option value="pdf">PDF</option>
+                </select>
+              </div>
+              <button
+                onClick={handleGenerateSummary}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-semibold shadow"
+              >
+                <Download className="w-4 h-4" />
+                <span>Generate</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center space-x-4 mb-6">
           <div className="w-10 h-10 lg:w-12 lg:h-12 bg-purple-100 rounded-lg flex items-center justify-center">
             <FlaskConical className="h-5 w-5 lg:h-6 lg:w-6 text-purple-600" />

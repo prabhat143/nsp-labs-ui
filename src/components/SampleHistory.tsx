@@ -87,6 +87,10 @@ const SampleHistory: React.FC = () => {
     switch (activeFilter) {
       case 'pending':
         return samples.filter(s => s.status.toUpperCase() === 'PENDING');
+      case 'collecting':
+        return samples.filter(s => s.status.toUpperCase() === 'COLLECTING');
+      case 'collected':
+        return samples.filter(s => s.status.toUpperCase() === 'COLLECTED');
       case 'testing':
         return samples.filter(s => s.status.toUpperCase() === 'PROCESSING' || s.status.toUpperCase() === 'TESTING');
       case 'completed':
@@ -113,7 +117,7 @@ const SampleHistory: React.FC = () => {
         </div>
 
         {/* Statistics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
           {[
             { 
               label: 'Total Samples', 
@@ -128,6 +132,20 @@ const SampleHistory: React.FC = () => {
               color: 'bg-yellow-100 text-yellow-800',
               filterKey: 'pending',
               clickable: samples.filter(s => s.status.toUpperCase() === 'PENDING').length > 0
+            },
+            { 
+              label: 'Collecting',
+              value: samples.filter(s => s.status.toUpperCase() === 'COLLECTING').length,
+              color: 'bg-pink-100 text-pink-800',
+              filterKey: 'collecting',
+              clickable: samples.filter(s => s.status.toUpperCase() === 'COLLECTING').length > 0
+            },
+            { 
+              label: 'Collected',
+              value: samples.filter(s => s.status.toUpperCase() === 'COLLECTED').length,
+              color: 'bg-rose-100 text-rose-800',
+              filterKey: 'collected',
+              clickable: samples.filter(s => s.status.toUpperCase() === 'COLLECTED').length > 0
             },
             { 
               label: 'Testing', 

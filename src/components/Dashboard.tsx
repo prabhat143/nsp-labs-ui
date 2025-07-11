@@ -20,6 +20,8 @@ const Dashboard: React.FC = () => {
   
   // Calculate statistics from API data
   const pendingSamples = samples.filter(s => s.status.toUpperCase() === 'PENDING').length;
+  const collectingSamples = samples.filter(s => s.status.toUpperCase() === 'COLLECTING').length;
+  const collectedSamples = samples.filter(s => s.status.toUpperCase() === 'COLLECTED').length;
   const testingSamples = samples.filter(s => s.status.toUpperCase() === 'PROCESSING' || s.status.toUpperCase() === 'TESTING').length;
   const completedSamples = samples.filter(s => s.status.toUpperCase() === 'COMPLETED').length;
   const successfulTests = completedSamples; // Assuming completed means successful for now
@@ -68,6 +70,24 @@ const Dashboard: React.FC = () => {
       bgColor: 'bg-yellow-100',
       onClick: () => navigate('/samples?status=pending'),
       clickable: pendingSamples > 0,
+    },
+    {
+      label: 'Collecting',
+      value: collectingSamples,
+      icon: Upload,
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-100',
+      onClick: () => navigate('/samples?status=collecting'),
+      clickable: collectingSamples > 0,
+    },
+    {
+      label: 'Collected',
+      value: collectedSamples,
+      icon: Upload,
+      color: 'text-rose-600',
+      bgColor: 'bg-rose-100',
+      onClick: () => navigate('/samples?status=collected'),
+      clickable: collectedSamples > 0,
     },
     {
       label: 'Testing in Progress',

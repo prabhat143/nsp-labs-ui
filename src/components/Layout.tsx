@@ -173,12 +173,10 @@ const Layout: React.FC = () => {
 
         {/* Main Content */}
         <main className="flex-1 p-4 lg:p-8">
-          <div className="max-w-6xl mx-auto">
-            <SamplesProvider samples={samples} loading={samplesLoading} error={samplesError}>
-              <Outlet />
-            </SamplesProvider>
-          </div>
-        </main>
+  <SamplesProvider samples={samples} loading={samplesLoading} error={samplesError}>
+    <Outlet />
+  </SamplesProvider>
+</main>
       </div>
 
       {/* Mobile menu overlay */}

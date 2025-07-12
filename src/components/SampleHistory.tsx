@@ -314,26 +314,32 @@ const SampleHistory: React.FC = () => {
 
   // Filter samples based on active filter
   const getFilteredSamples = () => {
+    let filtered = [];
     switch (activeFilter) {
       case "pending":
-        return samples.filter((s) => {
+        filtered = samples.filter((s) => {
           const status = s.status.toUpperCase();
           return status === "PENDING" || status === "COLLECTING";
         });
-      // Remove collecting case
+        break;
       case "collected":
-        return samples.filter((s) => s.status.toUpperCase() === "COLLECTED");
+        filtered = samples.filter((s) => s.status.toUpperCase() === "COLLECTED");
+        break;
       case "testing":
-        return samples.filter(
+        filtered = samples.filter(
           (s) =>
             s.status.toUpperCase() === "PROCESSING" ||
             s.status.toUpperCase() === "TESTING"
         );
+        break;
       case "completed":
-        return samples.filter((s) => s.status.toUpperCase() === "COMPLETED");
+        filtered = samples.filter((s) => s.status.toUpperCase() === "COMPLETED");
+        break;
       default:
-        return samples;
+        filtered = samples;
     }
+    // Sort by updatedAt descending (latest first)
+    return filtered.slice().sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   };
 
   const filteredSamples = getFilteredSamples();
@@ -658,14 +664,13 @@ const SampleHistory: React.FC = () => {
                       {(sample.status.toUpperCase() === "COLLECTING" ||
                         sample.status.toUpperCase() === "TESTING") &&
                         sample.assigned && (
-                          <div className="relative group flex items-center space-x-2">
+                          <div className="flex items-center space-x-2">
                             <span className="px-3 py-1 rounded-full text-xs font-medium border bg-blue-100 text-blue-800 border-blue-200 flex items-center space-x-1">
                               <User className="h-3 w-3" />
                               <span>Agent Assigned</span>
                               {sample.status.toUpperCase() === "COLLECTING" &&
                                 (() => {
-                                  const [name, phone] =
-                                    sample.assigned.split("-");
+                                  const [name, phone] = sample.assigned.split("-");
                                   return (
                                     <a
                                       href={`tel:${phone}`}
@@ -676,45 +681,20 @@ const SampleHistory: React.FC = () => {
                                     </a>
                                   );
                                 })()}
-                            </span>
-                            {/* Tooltip on hover */}
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                              {sample.status.toUpperCase() === "COLLECTING" ? (
-                                (() => {
-                                  const [name, phone] =
-                                    sample.assigned.split("-");
-                                  return (
-                                    <>
-                                      <div className="font-medium">
-                                        Agent: {name}
-                                      </div>
-                                      <div>
-                                        Phone:{" "}
-                                        <a
-                                          href={`tel:${phone}`}
-                                          className="underline text-blue-300 hover:text-blue-400"
-                                        >
-                                          {phone}
-                                        </a>
-                                      </div>
-                                      <div className="text-gray-300">
-                                        Field Collector
-                                      </div>
-                                    </>
-                                  );
-                                })()
-                              ) : (
-                                <>
-                                  <div className="font-medium">
-                                    Agent ID: {sample.assigned}
-                                  </div>
-                                  <div className="text-gray-300">
-                                    Lab Technician
-                                  </div>
-                                </>
+                              {/* Show ETA time if present */}
+                              {sample.testingEta && (
+                                <span className="ml-2 text-xs text-gray-500 font-normal">
+                                  ETA:{" "}
+                                  {new Date(sample.testingEta).toLocaleTimeString(
+                                    undefined,
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
+                                  )}
+                                </span>
                               )}
-                              <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                            </div>
+                            </span>
                           </div>
                         )}
                     </div>
@@ -771,8 +751,8 @@ const SampleHistory: React.FC = () => {
                   </div>
 
                   {/* View Details Section */}
-                  <details className="mt-4">
-                    <summary className="cursor-pointer text-blue-600 hover:text-blue-800 font-medium text-sm">
+                  <details className="mt-4 group">
+                    <summary className="cursor-pointer text-blue-600 hover:text-blue-800 font-medium text-sm focus:outline-none group-open:text-blue-800">
                       View Details
                     </summary>
                     <div className="mt-3 p-4 bg-gray-50 rounded-lg space-y-2">

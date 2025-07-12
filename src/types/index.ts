@@ -72,6 +72,7 @@ export interface SampleSubmission {
   createdAt: string;
   updatedAt: string;
   assigned?: string;
+  testingEta?: string;
 }
 
 export interface AuthContextType {

@@ -195,7 +195,7 @@ const TestingTimeline: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Testing Timeline</h1>
           <p className="text-gray-600 mb-4">Track the progress of your shrimp sample through our comprehensive testing process.</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
             <div>
               <span className="font-semibold text-gray-700">Location:</span>
               <p className="text-gray-600">{sample.samplerLocation}</p>
@@ -208,6 +208,20 @@ const TestingTimeline: React.FC = () => {
               <span className="font-semibold text-gray-700">Submitted:</span>
               <p className="text-gray-600">{new Date(sample.createdAt).toLocaleDateString()}</p>
             </div>
+            {sample.testingEta && (
+              <div>
+                <span className="font-semibold text-gray-700">ETA:</span>
+                <p className="text-gray-600">
+                  {new Date(sample.testingEta).toLocaleString(undefined, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

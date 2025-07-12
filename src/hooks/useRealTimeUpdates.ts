@@ -12,7 +12,7 @@ interface UseRealTimeUpdatesOptions {
  */
 export const useRealTimeUpdates = ({
   enabled = true,
-  interval = 30000, // 30 seconds default
+  interval = 200, // 200ms default
   onUpdate
 }: UseRealTimeUpdatesOptions) => {
   const intervalRef = useRef<number | null>(null);

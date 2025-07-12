@@ -140,10 +140,10 @@ const Layout: React.FC = () => {
     // Initial fetch
     fetchSamplesForNotifications();
 
-    // Set up polling for real-time updates every 5 seconds
+    // Set up polling for real-time updates every 200ms
     const pollInterval = setInterval(() => {
       fetchSamplesForNotifications(true); // Mark as refresh
-    }, 60000); // 60 seconds - more reasonable polling interval
+    }, 200); // 200ms polling interval
 
     // Cleanup interval on unmount
     return () => {

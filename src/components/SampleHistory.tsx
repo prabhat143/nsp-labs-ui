@@ -314,33 +314,51 @@ const SampleHistory: React.FC = () => {
 
   // Filter samples based on active filter
   const getFilteredSamples = () => {
-    let filtered = [];
-    switch (activeFilter) {
-      case "pending":
-        filtered = samples.filter((s) => {
-          const status = s.status.toUpperCase();
-          return status === "PENDING" || status === "COLLECTING";
-        });
-        break;
-      case "collected":
-        filtered = samples.filter((s) => s.status.toUpperCase() === "COLLECTED");
-        break;
-      case "testing":
-        filtered = samples.filter(
-          (s) =>
-            s.status.toUpperCase() === "PROCESSING" ||
-            s.status.toUpperCase() === "TESTING"
-        );
-        break;
-      case "completed":
-        filtered = samples.filter((s) => s.status.toUpperCase() === "COMPLETED");
-        break;
-      default:
-        filtered = samples;
-    }
-    // Sort by updatedAt descending (latest first)
-    return filtered.slice().sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-  };
+  let filtered = [];
+  switch (activeFilter) {
+    case "pending":
+      filtered = samples.filter((s) => {
+        const status = s.status.toUpperCase();
+        return status === "PENDING" || status === "COLLECTING";
+      });
+      // Sort pending samples: PENDING first, then COLLECTING
+      filtered.sort((a, b) => {
+        const statusA = a.status.toUpperCase();
+        const statusB = b.status.toUpperCase();
+        
+        // If both are same status, sort by updatedAt (latest first)
+        if (statusA === statusB) {
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        }
+        
+        // PENDING comes before COLLECTING
+        if (statusA === "PENDING" && statusB === "COLLECTING") return -1;
+        if (statusA === "COLLECTING" && statusB === "PENDING") return 1;
+        
+        return 0;
+      });
+      return filtered;
+      
+    case "collected":
+      filtered = samples.filter((s) => s.status.toUpperCase() === "COLLECTED");
+      break;
+    case "testing":
+      filtered = samples.filter(
+        (s) =>
+          s.status.toUpperCase() === "PROCESSING" ||
+          s.status.toUpperCase() === "TESTING"
+      );
+      break;
+    case "completed":
+      filtered = samples.filter((s) => s.status.toUpperCase() === "COMPLETED");
+      break;
+    default:
+      filtered = samples;
+  }
+  
+  // For all other filters, sort by updatedAt descending (latest first)
+  return filtered.slice().sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+};
 
   const filteredSamples = getFilteredSamples();
 
@@ -662,41 +680,57 @@ const SampleHistory: React.FC = () => {
                         {getStatusLabel(sample.status)}
                       </span>
                       {(sample.status.toUpperCase() === "COLLECTING" ||
-                        sample.status.toUpperCase() === "TESTING") &&
-                        sample.assigned && (
-                          <div className="flex items-center space-x-2">
-                            <span className="px-3 py-1 rounded-full text-xs font-medium border bg-blue-100 text-blue-800 border-blue-200 flex items-center space-x-1">
-                              <User className="h-3 w-3" />
-                              <span>Agent Assigned</span>
-                              {sample.status.toUpperCase() === "COLLECTING" &&
-                                (() => {
-                                  const [name, phone] = sample.assigned.split("-");
-                                  return (
-                                    <a
-                                      href={`tel:${phone}`}
-                                      className="ml-2 underline text-blue-600 hover:text-blue-800"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      {phone}
-                                    </a>
-                                  );
-                                })()}
-                              {/* Show ETA time if present */}
-                              {sample.testingEta && (
-                                <span className="ml-2 text-xs text-gray-500 font-normal">
-                                  ETA:{" "}
-                                  {new Date(sample.testingEta).toLocaleTimeString(
-                                    undefined,
-                                    {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    }
-                                  )}
-                                </span>
-                              )}
-                            </span>
-                          </div>
-                        )}
+  sample.status.toUpperCase() === "TESTING") &&
+  sample.assigned && (
+    <div className="flex items-center space-x-2">
+      <span className="px-3 py-1 rounded-full text-xs font-medium border bg-blue-100 text-blue-800 border-blue-200 flex items-center space-x-1 group relative">
+        <User className="h-3 w-3" />
+        <span>Agent Assigned</span>
+        
+        {/* Agent Details Tooltip on Hover */}
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10 pointer-events-none">
+          <div className="text-center">
+            <div className="font-medium">
+              {sample.assigned.split("-")[0] || "Agent"}
+            </div>
+            <div className="text-gray-300">
+              {sample.assigned.split("-")[1] || "No phone"}
+            </div>
+          </div>
+          {/* Tooltip Arrow */}
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+        </div>
+
+        {/* Clickable Phone Number for COLLECTING status */}
+        {sample.status.toUpperCase() === "COLLECTING" &&
+          sample.assigned.includes("-") && (
+            <a
+              href={`tel:${sample.assigned.split("-")[1]}`}
+              className="ml-2 underline text-blue-600 hover:text-blue-800 font-medium"
+              onClick={(e) => e.stopPropagation()}
+              title={`Call ${sample.assigned.split("-")[0]}`}
+            >
+              {sample.assigned.split("-")[1]}
+            </a>
+          )}
+
+        {/* Show ETA time if present */}
+        {sample.testingEta && (
+          <span className="ml-2 text-xs text-gray-500 font-normal">
+            ETA:{" "}
+            {new Date(sample.testingEta).toLocaleTimeString(
+              undefined,
+              {
+                hour: "2-digit",
+                minute: "2-digit",
+              }
+            )}
+          </span>
+        )}
+      </span>
+    </div>
+  )}
+
                     </div>
                   </div>
 

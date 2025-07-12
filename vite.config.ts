@@ -11,4 +11,7 @@ export default defineConfig({
     port: 3000,
     host: true,
   },
+    define: {
+    global: 'window', // Polyfill for SockJS and other node libs
+  },
 });

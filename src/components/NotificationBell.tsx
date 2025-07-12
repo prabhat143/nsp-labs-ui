@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useRealtime } from '../contexts/RealtimeContext';
 import { useNavigate } from 'react-router-dom';
 import { Bell, X, Clock, UserCheck, FlaskConical, CheckCircle } from 'lucide-react';
 import { useNotifications, Notification } from '../contexts/NotificationContext';
@@ -70,14 +71,22 @@ const NotificationBell: React.FC = () => {
     }
   };
 
+  const { isRealtime } = useRealtime();
+  console.log('[🔔 Bell] isRealtime =', isRealtime);
+  // Re-render on isRealtime change (already handled by context, but ensure update)
+
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Bell Icon */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+        style={{ boxSizing: 'content-box' }}
       >
-        <Bell className="h-6 w-6" />
+        <Bell
+          className="h-6 w-6"
+          style={{ stroke: isRealtime ? '#22c55e' : '#ef4444', strokeWidth: 2 }}
+        />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
             {unreadCount > 99 ? '99+' : unreadCount}
@@ -90,16 +99,22 @@ const NotificationBell: React.FC = () => {
         <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-hidden">
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
-            {notifications.length > 0 && (
-              <button
-                onClick={markAllAsRead}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-              >
-                Mark all read
-              </button>
-            )}
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900">Notifications</h3>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs sm:text-sm text-gray-600 hidden sm:inline">
+                {isRealtime ? 'Real-time updates' : 'Manual updates'}
+              </span>
+              {notifications.length > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Mark all read
+                </button>
+              )}
+            </div>
           </div>
+      
 
           {/* Notifications List */}
           <div className="max-h-80 overflow-y-auto">

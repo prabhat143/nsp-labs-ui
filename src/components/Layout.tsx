@@ -6,6 +6,10 @@ import { SamplesProvider } from '../contexts/SamplesContext';
 import { apiService } from '../services/api';
 import { SampleSubmission } from '../types';
 import NotificationBell from './NotificationBell';
+import { useRealtime } from '../contexts/RealtimeContext';
+import SockJS from 'sockjs-client';
+import { Client } from '@stomp/stompjs';
+import { getApiConfig } from '../config/api';
 import { 
   User, 
   FlaskConical, 
@@ -23,115 +27,27 @@ const Layout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const previousSamplesRef = useRef<SampleSubmission[]>([]);
-  const [lastFetch, setLastFetch] = useState<number>(0);
   
   // Samples state for global context
   const [samples, setSamples] = useState<SampleSubmission[]>([]);
   const [samplesLoading, setSamplesLoading] = useState(true);
   const [samplesError, setSamplesError] = useState<string | null>(null);
+    const previousSamplesRef = useRef<SampleSubmission[]>([]);
+    const { setIsRealtime } = useRealtime();
 
   // Global polling for sample updates - runs on all pages
   useEffect(() => {
     if (!user?.id) return;
 
-    const fetchSamplesForNotifications = async (isRefresh = false) => {
-      // Prevent multiple simultaneous requests
-      const now = Date.now();
-      if (isRefresh && now - lastFetch < 2000) { // Minimum 2 seconds between requests
-        return;
-      }
-
+    const fetchSamplesForNotifications = async () => {
       try {
         setSamplesError(null);
-        setLastFetch(now);
+        setSamplesLoading(true);
         const sampleSubmissions = await apiService.getSampleSubmissions(user.id);
-        
-        // Update global samples state
         setSamples(sampleSubmissions);
         setSamplesLoading(false);
-        
-        // Compare with previous samples to detect changes and generate notifications
-        if (isRefresh && previousSamplesRef.current.length > 0) {
-          const previousSamples = previousSamplesRef.current;
-          console.log('Layout polling - comparing with previous samples:', previousSamples.length);
-          
-          sampleSubmissions.forEach((currentSample) => {
-            const previousSample = previousSamples.find(p => p.id === currentSample.id);
-            
-            if (previousSample) {
-              console.log(`Comparing sample ${currentSample.id}:`, {
-                previousStatus: previousSample.status,
-                currentStatus: currentSample.status,
-                previousAssigned: previousSample.assigned,
-                currentAssigned: currentSample.assigned
-              });
-              
-              // Check for status changes
-              if (previousSample.status !== currentSample.status) {
-                console.log('Status change detected, adding notification');
-                addNotification({
-                  type: 'sample_status_change',
-                  title: 'Sample Status Updated',
-                  message: `Sample status changed from ${previousSample.status.toUpperCase()} to ${currentSample.status.toUpperCase()}`,
-                  sampleId: currentSample.id,
-                  data: { previousStatus: previousSample.status, newStatus: currentSample.status }
-                });
-              }
-              
-              // Check for agent assignment changes - improved logic
-              if (previousSample.assigned !== currentSample.assigned) {
-                console.log('Agent assignment change detected');
-                if (currentSample.assigned && !previousSample.assigned) {
-                  // Agent was assigned
-                  console.log('Agent assigned, adding notification');
-                  addNotification({
-                    type: 'sample_assigned',
-                    title: 'Agent Assigned',
-                    message: `Agent ${currentSample.assigned} has been assigned to your sample`,
-                    sampleId: currentSample.id,
-                    data: { agent: currentSample.assigned }
-                  });
-                } else if (!currentSample.assigned && previousSample.assigned) {
-                  // Agent was unassigned
-                  console.log('Agent unassigned, adding notification');
-                  addNotification({
-                    type: 'sample_status_change',
-                    title: 'Agent Unassigned',
-                    message: `Agent ${previousSample.assigned} has been unassigned from your sample`,
-                    sampleId: currentSample.id,
-                    data: { previousAgent: previousSample.assigned }
-                  });
-                } else if (currentSample.assigned && previousSample.assigned && currentSample.assigned !== previousSample.assigned) {
-                  // Agent was changed
-                  addNotification({
-                    type: 'sample_assigned',
-                    title: 'Agent Changed',
-                    message: `Agent changed from ${previousSample.assigned} to ${currentSample.assigned}`,
-                    sampleId: currentSample.id,
-                    data: { previousAgent: previousSample.assigned, newAgent: currentSample.assigned }
-                  });
-                }
-              }
-              
-              // Check for completion
-              if (previousSample.status !== 'COMPLETED' && currentSample.status === 'COMPLETED') {
-                addNotification({
-                  type: 'sample_completed',
-                  title: 'Sample Completed',
-                  message: `Your sample testing has been completed. Report is now available.`,
-                  sampleId: currentSample.id,
-                  data: { completedAt: new Date() }
-                });
-              }
-            }
-          });
-        }
-        
-        // Update previous samples reference
         previousSamplesRef.current = sampleSubmissions;
       } catch (err) {
-        console.error('Failed to fetch samples for notifications:', err);
         setSamplesError('Failed to fetch sample data');
         setSamplesLoading(false);
       }
@@ -140,16 +56,139 @@ const Layout: React.FC = () => {
     // Initial fetch
     fetchSamplesForNotifications();
 
-    // Set up polling for real-time updates every 200ms
-    const pollInterval = setInterval(() => {
-      fetchSamplesForNotifications(true); // Mark as refresh
-    }, 200); // 200ms polling interval
+    // WebSocket setup with health check and auto reconnect
+    let stompClient: Client | null = null;
+    let pingInterval: number | null = null;
+    let lastPong = Date.now();
 
-    // Cleanup interval on unmount
+    function connectWebSocket() {
+      // Always create a new client for each attempt
+      if (stompClient) {
+        try { stompClient.deactivate(); } catch (e) {}
+        stompClient = null;
+      }
+      const socket = new SockJS('http://localhost:8080/api/ws');
+      stompClient = new Client({
+        webSocketFactory: () => socket,
+        reconnectDelay: 0,
+        onConnect: () => {
+          console.log('[WebSocket] Connected. Setting isRealtime = true');
+          setIsRealtime(true);
+          lastPong = Date.now();
+          stompClient?.subscribe('/topic/sample-submissions/updates', (message: any) => {
+            const update = JSON.parse(message.body);
+            const previousSamples = previousSamplesRef.current;
+            const previousSample = previousSamples.find((p) => p.id === update.id);
+            setSamples((prevSamples) => {
+              const updatedSamples = prevSamples.map(sample =>
+                sample.id === update.id ? { ...sample, ...update } : sample
+              );
+              previousSamplesRef.current = updatedSamples;
+              return updatedSamples;
+            });
+            if (previousSample) {
+              if (previousSample.status !== update.status) {
+                addNotification({
+                  type: 'sample_status_change',
+                  title: 'Sample Status Updated',
+                  message: `Sample [ID: ${update.id}] status changed from ${previousSample.status.toUpperCase()} to ${update.status.toUpperCase()}`,
+                  sampleId: update.id,
+                  data: { previousStatus: previousSample.status, newStatus: update.status }
+                });
+              }
+              if (previousSample.assigned !== update.assigned) {
+                if (update.assigned && !previousSample.assigned) {
+                  addNotification({
+                    type: 'sample_assigned',
+                    title: 'Agent Assigned',
+                    message: `Agent ${update.assigned} has been assigned to your sample [ID: ${update.id}]`,
+                    sampleId: update.id,
+                    data: { agent: update.assigned }
+                  });
+                } else if (!update.assigned && previousSample.assigned) {
+                  addNotification({
+                    type: 'sample_status_change',
+                    title: 'Agent Unassigned',
+                    message: `Agent ${previousSample.assigned} has been unassigned from your sample [ID: ${update.id}]`,
+                    sampleId: update.id,
+                    data: { previousAgent: previousSample.assigned }
+                  });
+                } else if (update.assigned && previousSample.assigned && update.assigned !== previousSample.assigned) {
+                  addNotification({
+                    type: 'sample_assigned',
+                    title: 'Agent Changed',
+                    message: `Agent changed from ${previousSample.assigned} to ${update.assigned} for sample [ID: ${update.id}]`,
+                    sampleId: update.id,
+                    data: { previousAgent: previousSample.assigned, newAgent: update.assigned }
+                  });
+                }
+              }
+              if (
+                previousSample.status !== 'COMPLETED' &&
+                update.status === 'COMPLETED'
+              ) {
+                addNotification({
+                  type: 'sample_completed',
+                  title: 'Sample Completed',
+                  message: `Your sample [ID: ${update.id}] testing has been completed. Report is now available.`,
+                  sampleId: update.id,
+                  data: { completedAt: new Date() }
+                });
+              }
+            }
+          });
+        },
+        onDisconnect: () => {
+          console.warn('[WebSocket] Disconnected. Setting isRealtime = false');
+          setIsRealtime(false);
+          // Immediately try to reconnect
+          connectWebSocket();
+        },
+        onStompError: (frame) => {
+          console.error('[WebSocket] STOMP error:', frame.headers['message']);
+          setIsRealtime(false);
+          // Immediately try to reconnect
+          connectWebSocket();
+        }
+      });
+      stompClient.activate();
+    }
+
+    connectWebSocket();
+
+    // Health check: ping every 2s, use /websocket/health endpoint and baseURL from config
+    const { baseURL } = getApiConfig();
+    pingInterval = window.setInterval(() => {
+      fetch(`${baseURL}/websocket/health`)
+        .then(res => {
+          if (res.status === 200) {
+            // Health check passed, do nothing
+            return;
+          } else {
+            console.warn('[WebSocket] Health endpoint returned non-200. Setting isRealtime = false and reconnecting');
+            setIsRealtime(false);
+            connectWebSocket();
+          }
+        })
+        .catch(() => {
+          console.warn('[WebSocket] Health endpoint unreachable. Setting isRealtime = false and reconnecting');
+          setIsRealtime(false);
+          connectWebSocket();
+        });
+    }, 2000);
+
     return () => {
-      clearInterval(pollInterval);
+      if (stompClient) {
+        console.log('[WebSocket] Cleanup: deactivating client');
+        stompClient.deactivate();
+      }
+      if (pingInterval) {
+        clearInterval(pingInterval);
+      }
+      console.log('[WebSocket] Cleanup: setting isRealtime = false');
+      setIsRealtime(false);
     };
-  }, [user?.id, addNotification, lastFetch]);
+  }, [user?.id, addNotification, setIsRealtime]);
 
   const handleLogout = () => {
     logout();
@@ -172,7 +211,7 @@ const Layout: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
       {/* Header */}
-      <header className="bg-white shadow-lg border-b-4 border-cyan-500 relative z-50">
+      <header className="bg-white shadow-lg border-b-4 border-cyan-500 fixed top-0 left-0 right-0 w-full z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
@@ -253,7 +292,7 @@ const Layout: React.FC = () => {
         )}
       </header>
 
-      <div className="flex">
+      <div className="flex pt-16">
         {/* Desktop Sidebar */}
         <nav className="hidden lg:block w-64 bg-white shadow-lg min-h-screen">
           <div className="p-4">

@@ -330,6 +330,22 @@ const SubmitSample: React.FC = () => {
     });
   };
 
+  // Handler to reset form and state for submitting another sample
+  const handleNewSample = () => {
+    setSubmitted(false);
+    setSubmittedSample(null);
+    setProgressStage('submitted');
+    setAssignedAgent('');
+    setFormData({
+      customerId: '',
+      location: '',
+      category: '',
+      subCategory: '',
+      phoneNumber: '',
+      email: '',
+    });
+  };
+
   const getStageIcon = (stage: string) => {
     switch (stage) {
       case 'submitted':
@@ -526,6 +542,12 @@ const SubmitSample: React.FC = () => {
                 >
                   View All Samples
                 </button>
+                <button
+                  onClick={handleNewSample}
+                  className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 px-6 rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-colors font-medium"
+                >
+                  Submit Another Sample
+                </button>
               </>
             ) : (
               <>
@@ -540,6 +562,12 @@ const SubmitSample: React.FC = () => {
                   className="flex-1 border border-gray-300 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                 >
                   Back to Dashboard
+                </button>
+                <button
+                  onClick={handleNewSample}
+                  className="flex-1 bg-gradient-to-r from-green-500 to-cyan-500 text-white py-3 px-6 rounded-lg hover:from-green-600 hover:to-cyan-600 transition-colors font-medium"
+                >
+                  Submit Another Sample
                 </button>
               </>
             )}

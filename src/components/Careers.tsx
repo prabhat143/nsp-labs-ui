@@ -178,15 +178,15 @@ const Careers: React.FC = () => {
       {/* Header */}
       <header className="bg-white shadow-lg border-b-4 border-cyan-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
+          <div className="flex justify-between items-center h-14 sm:h-16">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <img 
                 src="/favicon.jpeg" 
                 alt="NSP Labs Logo" 
-                className="h-10 w-10 rounded-full object-cover"
+                className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover"
               />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">NSP Labs</h1>
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900">NSP Labs</h1>
                 <p className="text-xs text-gray-500 hidden sm:block">Analytical Labs Private Limited</p>
               </div>
             </div>
@@ -194,37 +194,37 @@ const Careers: React.FC = () => {
               onClick={() => navigate('/')}
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back to Home</span>
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-sm sm:text-base">Back to Home</span>
             </button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         {/* Hero Section */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-12">
-          <div className="bg-gradient-to-r from-green-600 to-cyan-600 px-8 py-16 text-white">
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8 sm:mb-12">
+          <div className="bg-gradient-to-r from-green-600 to-cyan-600 px-6 sm:px-8 py-12 sm:py-16 text-white">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="flex justify-center mb-6">
-                <Users className="h-16 w-16" />
+              <div className="flex justify-center mb-4 sm:mb-6">
+                <Users className="h-12 w-12 sm:h-16 sm:w-16" />
               </div>
-              <h1 className="text-4xl font-bold mb-4">Join Our Team</h1>
-              <p className="text-xl text-green-100 mb-8">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Join Our Team</h1>
+              <p className="text-lg sm:text-xl text-green-100 mb-6 sm:mb-8">
                 Be part of India's leading aquaculture testing laboratory and help shape the future of sustainable aquaculture
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-center">
                 <div>
-                  <div className="text-3xl font-bold">15+</div>
-                  <div className="text-green-100">Years of Excellence</div>
+                  <div className="text-2xl sm:text-3xl font-bold">15+</div>
+                  <div className="text-green-100 text-sm sm:text-base">Years of Excellence</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold">50+</div>
-                  <div className="text-green-100">Team Members</div>
+                  <div className="text-2xl sm:text-3xl font-bold">50+</div>
+                  <div className="text-green-100 text-sm sm:text-base">Team Members</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-bold">500+</div>
-                  <div className="text-green-100">Satisfied Clients</div>
+                  <div className="text-2xl sm:text-3xl font-bold">500+</div>
+                  <div className="text-green-100 text-sm sm:text-base">Satisfied Clients</div>
                 </div>
               </div>
             </div>
@@ -232,72 +232,72 @@ const Careers: React.FC = () => {
         </div>
 
         {/* Why Work With Us */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">Why Work With Us?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-6 sm:mb-8">Why Work With Us?</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {benefits.map((benefit, index) => (
               <div key={index} className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="h-8 w-8 text-white" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-green-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <benefit.icon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{benefit.title}</h3>
-                <p className="text-gray-600">{benefit.description}</p>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{benefit.title}</h3>
+                <p className="text-gray-600 text-sm sm:text-base">{benefit.description}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Job Openings */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Current Openings</h2>
-          <div className="space-y-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Current Openings</h2>
+          <div className="space-y-4 sm:space-y-6">
             {jobOpenings.map((job) => (
-              <div key={job.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4">
+              <div key={job.id} className="border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-3 sm:mb-4">
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{job.title}</h3>
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{job.title}</h3>
+                    <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
                       <div className="flex items-center space-x-1">
-                        <Briefcase className="h-4 w-4" />
+                        <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span>{job.department}</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <MapPin className="h-4 w-4" />
+                        <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span>{job.location}</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4" />
+                        <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span>{job.type}</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <DollarSign className="h-4 w-4" />
+                        <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span>{job.salary}</span>
                       </div>
                     </div>
                   </div>
                   <button
                     onClick={() => setSelectedJob(selectedJob === job.id ? null : job.id)}
-                    className="mt-4 lg:mt-0 bg-gradient-to-r from-green-500 to-cyan-500 text-white px-6 py-2 rounded-lg hover:from-green-600 hover:to-cyan-600 transition-colors"
+                    className="mt-3 lg:mt-0 bg-gradient-to-r from-green-500 to-cyan-500 text-white px-4 sm:px-6 py-2 rounded-lg hover:from-green-600 hover:to-cyan-600 transition-colors text-sm sm:text-base"
                   >
                     {selectedJob === job.id ? 'Hide Details' : 'View Details'}
                   </button>
                 </div>
                 
-                <p className="text-gray-700 mb-4">{job.description}</p>
+                <p className="text-gray-700 mb-3 sm:mb-4 text-sm sm:text-base">{job.description}</p>
                 
                 {selectedJob === job.id && (
                   <div className="border-t border-gray-200 pt-4 space-y-4">
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Requirements:</h4>
-                      <ul className="list-disc list-inside space-y-1 text-gray-700">
+                      <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">Requirements:</h4>
+                      <ul className="list-disc list-inside space-y-1 text-gray-700 text-sm sm:text-base">
                         {job.requirements.map((req, index) => (
                           <li key={index}>{req}</li>
                         ))}
                       </ul>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">Responsibilities:</h4>
-                      <ul className="list-disc list-inside space-y-1 text-gray-700">
+                      <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">Responsibilities:</h4>
+                      <ul className="list-disc list-inside space-y-1 text-gray-700 text-sm sm:text-base">
                         {job.responsibilities.map((resp, index) => (
                           <li key={index}>{resp}</li>
                         ))}
@@ -311,10 +311,10 @@ const Careers: React.FC = () => {
         </div>
 
         {/* Application Form */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Apply Now</h2>
-          <form onSubmit={handleSubmitApplication} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Apply Now</h2>
+          <form onSubmit={handleSubmitApplication} className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
                 <input
@@ -323,7 +323,7 @@ const Careers: React.FC = () => {
                   value={applicationForm.name}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -335,7 +335,7 @@ const Careers: React.FC = () => {
                   value={applicationForm.email}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                   placeholder="Enter your email"
                 />
               </div>
@@ -347,7 +347,7 @@ const Careers: React.FC = () => {
                   value={applicationForm.phone}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                   placeholder="Enter your phone number"
                 />
               </div>
@@ -358,7 +358,7 @@ const Careers: React.FC = () => {
                   value={applicationForm.position}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                 >
                   <option value="">Select a position</option>
                   {jobOpenings.map((job) => (
@@ -374,7 +374,7 @@ const Careers: React.FC = () => {
                   value={applicationForm.experience}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                   placeholder="e.g., 3 years"
                 />
               </div>
@@ -386,7 +386,7 @@ const Careers: React.FC = () => {
                   value={applicationForm.education}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                   placeholder="e.g., M.Sc Marine Biology"
                 />
               </div>
@@ -400,13 +400,13 @@ const Careers: React.FC = () => {
                 onChange={handleInputChange}
                 required
                 rows={6}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                 placeholder="Tell us why you're interested in this position and what makes you a great fit..."
               />
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-sm text-yellow-800">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4">
+              <p className="text-xs sm:text-sm text-yellow-800">
                 <strong>Note:</strong> Please attach your resume and relevant certificates by emailing them to 
                 <strong> nsplabs03@gmail.com</strong> with the subject line "Application for [Position Name] - [Your Name]"
               </p>
@@ -414,24 +414,24 @@ const Careers: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-green-500 to-cyan-500 text-white py-3 px-6 rounded-lg hover:from-green-600 hover:to-cyan-600 transition-colors font-medium flex items-center justify-center space-x-2"
+              className="w-full bg-gradient-to-r from-green-500 to-cyan-500 text-white py-2 sm:py-3 px-4 sm:px-6 rounded-lg hover:from-green-600 hover:to-cyan-600 transition-colors font-medium flex items-center justify-center space-x-2 text-sm sm:text-base"
             >
-              <Send className="h-5 w-5" />
+              <Send className="h-4 w-4 sm:h-5 sm:w-5" />
               <span>Submit Application</span>
             </button>
           </form>
 
           {/* Contact Information */}
-          <div className="mt-8 pt-8 border-t border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Questions about careers?</h3>
-            <div className="space-y-2">
+          <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Questions about careers?</h3>
+            <div className="space-y-1 sm:space-y-2">
               <div className="flex items-center space-x-2">
-                <Mail className="h-4 w-4 text-gray-600" />
-                <span className="text-gray-700">nsplabs03@gmail.com</span>
+                <Mail className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
+                <span className="text-gray-700 text-sm sm:text-base">nsplabs03@gmail.com</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Phone className="h-4 w-4 text-gray-600" />
-                <span className="text-gray-700">+91 9740579955</span>
+                <Phone className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
+                <span className="text-gray-700 text-sm sm:text-base">+91 9740579955</span>
               </div>
             </div>
           </div>

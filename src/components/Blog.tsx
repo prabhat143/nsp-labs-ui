@@ -279,15 +279,15 @@ The future of aquaculture testing is here, and it's more powerful, accessible, a
       {/* Header */}
       <header className="bg-white shadow-lg border-b-4 border-cyan-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
+          <div className="flex justify-between items-center h-14 sm:h-16">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <img 
                 src="/favicon.jpeg" 
                 alt="NSP Labs Logo" 
-                className="h-10 w-10 rounded-full object-cover"
+                className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover"
               />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">NSP Labs</h1>
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900">NSP Labs</h1>
                 <p className="text-xs text-gray-500 hidden sm:block">Analytical Labs Private Limited</p>
               </div>
             </div>
@@ -295,23 +295,23 @@ The future of aquaculture testing is here, and it's more powerful, accessible, a
               onClick={() => navigate('/')}
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back to Home</span>
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-sm sm:text-base">Back to Home</span>
             </button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         {/* Hero Section */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-12">
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-16 text-white">
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8 sm:mb-12">
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 px-6 sm:px-8 py-12 sm:py-16 text-white">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="flex justify-center mb-6">
-                <BookOpen className="h-16 w-16" />
+              <div className="flex justify-center mb-4 sm:mb-6">
+                <BookOpen className="h-12 w-12 sm:h-16 sm:w-16" />
               </div>
-              <h1 className="text-4xl font-bold mb-4">NSP Labs Blog</h1>
-              <p className="text-xl text-purple-100 mb-8">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">NSP Labs Blog</h1>
+              <p className="text-lg sm:text-xl text-purple-100 mb-6 sm:mb-8">
                 Expert insights, industry trends, and practical guidance for aquaculture professionals
               </p>
             </div>
@@ -319,16 +319,16 @@ The future of aquaculture testing is here, and it's more powerful, accessible, a
         </div>
 
         {/* Search and Filter */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search articles..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-8 sm:pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
               />
             </div>
             <div className="flex flex-wrap gap-2">
@@ -336,14 +336,15 @@ The future of aquaculture testing is here, and it's more powerful, accessible, a
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                  className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm ${
                     selectedCategory === category.id
                       ? 'bg-purple-500 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  <category.icon className="h-4 w-4" />
-                  <span>{category.name}</span>
+                  <category.icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">{category.name}</span>
+                  <span className="sm:hidden">{category.name.split(' ')[0]}</span>
                 </button>
               ))}
             </div>
@@ -351,7 +352,7 @@ The future of aquaculture testing is here, and it's more powerful, accessible, a
         </div>
 
         {/* Blog Posts */}
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           {filteredPosts.map((post) => (
             <article key={post.id} className="bg-white rounded-2xl shadow-lg overflow-hidden">
               <div className="md:flex">
@@ -362,38 +363,38 @@ The future of aquaculture testing is here, and it's more powerful, accessible, a
                     className="w-full h-48 md:h-full object-cover"
                   />
                 </div>
-                <div className="md:w-2/3 p-6 lg:p-8">
-                  <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
+                <div className="md:w-2/3 p-4 sm:p-6 lg:p-8">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                     <div className="flex items-center space-x-1">
-                      <User className="h-4 w-4" />
+                      <User className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span>{post.author}</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <Calendar className="h-4 w-4" />
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span>{new Date(post.date).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <Clock className="h-4 w-4" />
+                      <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span>{post.readTime}</span>
                     </div>
                   </div>
                   
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">{post.title}</h2>
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">{post.title}</h2>
                   
-                  <div className="flex items-center space-x-2 mb-4">
-                    <Tag className="h-4 w-4 text-purple-600" />
-                    <span className="text-sm font-medium text-purple-600">{post.category}</span>
+                  <div className="flex items-center space-x-2 mb-3 sm:mb-4">
+                    <Tag className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
+                    <span className="text-xs sm:text-sm font-medium text-purple-600">{post.category}</span>
                   </div>
                   
-                  <p className="text-gray-700 mb-4">
+                  <p className="text-gray-700 mb-3 sm:mb-4 text-sm sm:text-base">
                     {expandedPost === post.id ? post.content : post.excerpt}
                   </p>
                   
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
                     {post.tags.map((tag, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
+                        className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 text-xs sm:text-sm rounded-full"
                       >
                         {tag}
                       </span>
@@ -402,7 +403,7 @@ The future of aquaculture testing is here, and it's more powerful, accessible, a
                   
                   <button
                     onClick={() => setExpandedPost(expandedPost === post.id ? null : post.id)}
-                    className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-colors"
+                    className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 sm:px-6 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-colors text-sm sm:text-base"
                   >
                     {expandedPost === post.id ? 'Read Less' : 'Read More'}
                   </button>
@@ -413,27 +414,27 @@ The future of aquaculture testing is here, and it's more powerful, accessible, a
         </div>
 
         {filteredPosts.length === 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No articles found</h3>
-            <p className="text-gray-600">Try adjusting your search terms or category filter.</p>
+          <div className="bg-white rounded-2xl shadow-lg p-8 sm:p-12 text-center">
+            <BookOpen className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No articles found</h3>
+            <p className="text-gray-600 text-sm sm:text-base">Try adjusting your search terms or category filter.</p>
           </div>
         )}
 
         {/* Newsletter Signup */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mt-12">
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-8 sm:mt-12">
           <div className="text-center">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Stay Updated</h3>
-            <p className="text-gray-600 mb-6">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Stay Updated</h3>
+            <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
               Subscribe to our newsletter for the latest insights and industry updates
             </p>
             <div className="flex flex-col sm:flex-row max-w-md mx-auto space-y-3 sm:space-y-0 sm:space-x-3">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm sm:text-base"
               />
-              <button className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-colors">
+              <button className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-colors text-sm sm:text-base">
                 Subscribe
               </button>
             </div>

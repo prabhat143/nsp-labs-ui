@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -7,9 +7,7 @@ import { apiService } from '../services/api';
 import { SampleSubmission } from '../types';
 import NotificationBell from './NotificationBell';
 import { useRealtime } from '../contexts/RealtimeContext';
-import SockJS from 'sockjs-client';
-import { Client } from '@stomp/stompjs';
-import { getApiConfig } from '../config/api';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { 
   User, 
   FlaskConical, 
@@ -32,163 +30,18 @@ const Layout: React.FC = () => {
   const [samples, setSamples] = useState<SampleSubmission[]>([]);
   const [samplesLoading, setSamplesLoading] = useState(true);
   const [samplesError, setSamplesError] = useState<string | null>(null);
-    const previousSamplesRef = useRef<SampleSubmission[]>([]);
-    const { setIsRealtime } = useRealtime();
+  const { setIsRealtime } = useRealtime();
 
-  // Global polling for sample updates - runs on all pages
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const fetchSamplesForNotifications = async () => {
-      try {
-        setSamplesError(null);
-        setSamplesLoading(true);
-        const sampleSubmissions = await apiService.getSampleSubmissions(user.id);
-        setSamples(sampleSubmissions);
-        setSamplesLoading(false);
-        previousSamplesRef.current = sampleSubmissions;
-      } catch (err) {
-        setSamplesError('Failed to fetch sample data');
-        setSamplesLoading(false);
-      }
-    };
-
-    // Initial fetch
-    fetchSamplesForNotifications();
-
-    // WebSocket setup with health check and auto reconnect
-    let stompClient: Client | null = null;
-    let pingInterval: number | null = null;
-    let lastPong = Date.now();
-
-    function connectWebSocket() {
-      // Always create a new client for each attempt
-      if (stompClient) {
-        try { stompClient.deactivate(); } catch (e) {}
-        stompClient = null;
-      }
-      const socket = new SockJS('http://localhost:8080/api/ws');
-      stompClient = new Client({
-        webSocketFactory: () => socket,
-        reconnectDelay: 0,
-        onConnect: () => {
-          console.log('[WebSocket] Connected. Setting isRealtime = true');
-          setIsRealtime(true);
-          lastPong = Date.now();
-          stompClient?.subscribe('/topic/sample-submissions/updates', (message: any) => {
-            const update = JSON.parse(message.body);
-            const previousSamples = previousSamplesRef.current;
-            const previousSample = previousSamples.find((p) => p.id === update.id);
-            setSamples((prevSamples) => {
-              const updatedSamples = prevSamples.map(sample =>
-                sample.id === update.id ? { ...sample, ...update } : sample
-              );
-              previousSamplesRef.current = updatedSamples;
-              return updatedSamples;
-            });
-            if (previousSample) {
-              if (previousSample.status !== update.status) {
-                addNotification({
-                  type: 'sample_status_change',
-                  title: 'Sample Status Updated',
-                  message: `Sample [ID: ${update.id}] status changed from ${previousSample.status.toUpperCase()} to ${update.status.toUpperCase()}`,
-                  sampleId: update.id,
-                  data: { previousStatus: previousSample.status, newStatus: update.status }
-                });
-              }
-              if (previousSample.assigned !== update.assigned) {
-                if (update.assigned && !previousSample.assigned) {
-                  addNotification({
-                    type: 'sample_assigned',
-                    title: 'Agent Assigned',
-                    message: `Agent ${update.assigned} has been assigned to your sample [ID: ${update.id}]`,
-                    sampleId: update.id,
-                    data: { agent: update.assigned }
-                  });
-                } else if (!update.assigned && previousSample.assigned) {
-                  addNotification({
-                    type: 'sample_status_change',
-                    title: 'Agent Unassigned',
-                    message: `Agent ${previousSample.assigned} has been unassigned from your sample [ID: ${update.id}]`,
-                    sampleId: update.id,
-                    data: { previousAgent: previousSample.assigned }
-                  });
-                } else if (update.assigned && previousSample.assigned && update.assigned !== previousSample.assigned) {
-                  addNotification({
-                    type: 'sample_assigned',
-                    title: 'Agent Changed',
-                    message: `Agent changed from ${previousSample.assigned} to ${update.assigned} for sample [ID: ${update.id}]`,
-                    sampleId: update.id,
-                    data: { previousAgent: previousSample.assigned, newAgent: update.assigned }
-                  });
-                }
-              }
-              if (
-                previousSample.status !== 'COMPLETED' &&
-                update.status === 'COMPLETED'
-              ) {
-                addNotification({
-                  type: 'sample_completed',
-                  title: 'Sample Completed',
-                  message: `Your sample [ID: ${update.id}] testing has been completed. Report is now available.`,
-                  sampleId: update.id,
-                  data: { completedAt: new Date() }
-                });
-              }
-            }
-          });
-        },
-        onDisconnect: () => {
-          console.warn('[WebSocket] Disconnected. Setting isRealtime = false');
-          setIsRealtime(false);
-          // Immediately try to reconnect
-          connectWebSocket();
-        },
-        onStompError: (frame) => {
-          console.error('[WebSocket] STOMP error:', frame.headers['message']);
-          setIsRealtime(false);
-          // Immediately try to reconnect
-          connectWebSocket();
-        }
-      });
-      stompClient.activate();
-    }
-
-    connectWebSocket();
-
-    // Health check: ping every 2s, use /websocket/health endpoint and baseURL from config
-    const { baseURL } = getApiConfig();
-    pingInterval = window.setInterval(() => {
-      fetch(`${baseURL}/websocket/health`)
-        .then(res => {
-          if (res.status === 200) {
-            // Health check passed, do nothing
-            return;
-          } else {
-            console.warn('[WebSocket] Health endpoint returned non-200. Setting isRealtime = false and reconnecting');
-            setIsRealtime(false);
-            connectWebSocket();
-          }
-        })
-        .catch(() => {
-          console.warn('[WebSocket] Health endpoint unreachable. Setting isRealtime = false and reconnecting');
-          setIsRealtime(false);
-          connectWebSocket();
-        });
-    }, 2000);
-
-    return () => {
-      if (stompClient) {
-        console.log('[WebSocket] Cleanup: deactivating client');
-        stompClient.deactivate();
-      }
-      if (pingInterval) {
-        clearInterval(pingInterval);
-      }
-      console.log('[WebSocket] Cleanup: setting isRealtime = false');
-      setIsRealtime(false);
-    };
-  }, [user?.id, addNotification, setIsRealtime]);
+  // Use the custom WebSocket hook
+  useWebSocket({
+    user,
+    addNotification,
+    setIsRealtime,
+    setSamples,
+    setSamplesLoading,
+    setSamplesError,
+    apiService
+  });
 
   const handleLogout = () => {
     logout();
@@ -205,7 +58,7 @@ const Layout: React.FC = () => {
 
   const handleMenuItemClick = (path: string) => {
     navigate(path);
-    setIsMobileMenuOpen(false); // Close mobile menu after navigation
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -215,7 +68,6 @@ const Layout: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              {/* Mobile menu button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"

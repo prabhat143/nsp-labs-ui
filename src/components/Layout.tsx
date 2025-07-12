@@ -140,16 +140,16 @@ const Layout: React.FC = () => {
     // Initial fetch
     fetchSamplesForNotifications();
 
-    // Set up polling for real-time updates every 5 seconds
+    // Set up polling for real-time updates every 200ms
     const pollInterval = setInterval(() => {
       fetchSamplesForNotifications(true); // Mark as refresh
-    }, 5000); // 5 seconds - more reasonable polling interval
+    }, 200); // 200ms polling interval
 
     // Cleanup interval on unmount
     return () => {
       clearInterval(pollInterval);
     };
-  }, [user?.id, addNotification]);
+  }, [user?.id, addNotification, lastFetch]);
 
   const handleLogout = () => {
     logout();
@@ -174,44 +174,44 @@ const Layout: React.FC = () => {
       {/* Header */}
       <header className="bg-white shadow-lg border-b-4 border-cyan-500 relative z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14 sm:h-16">
-            <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-3">
               {/* Mobile menu button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
               >
                 {isMobileMenuOpen ? (
-                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <X className="h-6 w-6" />
                 ) : (
-                  <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <Menu className="h-6 w-6" />
                 )}
               </button>
               
-              <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="flex items-center space-x-3">
                 <img 
                   src="/favicon.jpeg" 
                   alt="NSP Labs Logo" 
-                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover"
+                  className="h-10 w-10 rounded-full object-cover"
                 />
                 <div>
-                  <h1 className="text-lg sm:text-xl font-bold text-gray-900">NSP Labs</h1>
+                  <h1 className="text-xl font-bold text-gray-900">NSP Labs</h1>
                   <p className="text-xs text-gray-500 hidden sm:block">Analytical Labs Private Limited</p>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center space-x-4">
               <NotificationBell />
-              <div className="text-right hidden md:block">
-                <p className="text-sm font-medium text-gray-900 truncate max-w-32 lg:max-w-none">{user?.name}</p>
-                <p className="text-xs text-gray-500 truncate max-w-32 lg:max-w-none">{user?.email}</p>
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                <p className="text-xs text-gray-500">{user?.email}</p>
               </div>
               <button
                 onClick={handleLogout}
-                className="inline-flex items-center px-2 sm:px-3 py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-red-500 hover:bg-red-600 transition-colors"
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-500 hover:bg-red-600 transition-colors"
               >
-                <LogOut className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <LogOut className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
@@ -220,12 +220,12 @@ const Layout: React.FC = () => {
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden absolute top-14 sm:top-16 left-0 right-0 bg-white shadow-lg border-t z-40">
+          <div className="lg:hidden absolute top-16 left-0 right-0 bg-white shadow-lg border-t z-40">
             <div className="px-4 py-2">
-              <div className="flex items-center space-x-3 py-3 border-b border-gray-200 md:hidden">
+              <div className="flex items-center space-x-3 py-3 border-b border-gray-200 sm:hidden">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
-                  <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
                 </div>
               </div>
               <ul className="space-y-1 py-2">

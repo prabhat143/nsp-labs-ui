@@ -10,15 +10,15 @@ const TermsOfService: React.FC = () => {
       {/* Header */}
       <header className="bg-white shadow-lg border-b-4 border-cyan-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14 sm:h-16">
-            <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-3">
               <img 
                 src="/favicon.jpeg" 
                 alt="NSP Labs Logo" 
-                className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover"
+                className="h-10 w-10 rounded-full object-cover"
               />
               <div>
-                <h1 className="text-lg sm:text-xl font-bold text-gray-900">NSP Labs</h1>
+                <h1 className="text-xl font-bold text-gray-900">NSP Labs</h1>
                 <p className="text-xs text-gray-500 hidden sm:block">Analytical Labs Private Limited</p>
               </div>
             </div>
@@ -26,38 +26,38 @@ const TermsOfService: React.FC = () => {
               onClick={() => navigate('/')}
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
-              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="text-sm sm:text-base">Back to Home</span>
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back to Home</span>
             </button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 sm:px-8 py-8 sm:py-12 text-white">
-            <div className="flex items-center space-x-3 sm:space-x-4 mb-3 sm:mb-4">
-              <Scale className="h-8 w-8 sm:h-12 sm:w-12" />
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-12 text-white">
+            <div className="flex items-center space-x-4 mb-4">
+              <Scale className="h-12 w-12" />
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold">Terms of Service</h1>
-                <p className="text-indigo-100 text-sm sm:text-base">Last updated: January 2024</p>
+                <h1 className="text-3xl font-bold">Terms of Service</h1>
+                <p className="text-indigo-100">Last updated: January 2024</p>
               </div>
             </div>
-            <p className="text-base sm:text-lg text-indigo-100">
+            <p className="text-lg text-indigo-100">
               Please read these terms carefully before using our laboratory testing services.
             </p>
           </div>
 
           {/* Content */}
-          <div className="px-6 sm:px-8 py-8 sm:py-12 space-y-6 sm:space-y-8">
+          <div className="px-8 py-12 space-y-8">
             {/* Acceptance of Terms */}
             <section>
-              <div className="flex items-center space-x-3 mb-3 sm:mb-4">
-                <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Acceptance of Terms</h2>
+              <div className="flex items-center space-x-3 mb-4">
+                <CheckCircle className="h-6 w-6 text-indigo-600" />
+                <h2 className="text-2xl font-bold text-gray-900">Acceptance of Terms</h2>
               </div>
-              <div className="text-gray-700 space-y-3 text-sm sm:text-base">
+              <div className="text-gray-700 space-y-3">
                 <p>
                   By accessing and using NSP Analytical Labs Private Limited's services, you accept and agree to be bound by the terms and provision of this agreement.
                 </p>
@@ -69,11 +69,11 @@ const TermsOfService: React.FC = () => {
 
             {/* Service Description */}
             <section>
-              <div className="flex items-center space-x-3 mb-3 sm:mb-4">
-                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Service Description</h2>
+              <div className="flex items-center space-x-3 mb-4">
+                <FileText className="h-6 w-6 text-indigo-600" />
+                <h2 className="text-2xl font-bold text-gray-900">Service Description</h2>
               </div>
-              <div className="text-gray-700 space-y-3 sm:space-y-4 text-sm sm:text-base">
+              <div className="text-gray-700 space-y-4">
                 <p>NSP Labs provides comprehensive analytical testing services for aquaculture, including:</p>
                 <ul className="list-disc list-inside space-y-1 ml-4">
                   <li>Shrimp disease testing and health assessment</li>
@@ -83,8 +83,8 @@ const TermsOfService: React.FC = () => {
                   <li>Sodium level analysis</li>
                   <li>Microbiological testing</li>
                 </ul>
-                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 sm:p-4">
-                  <p className="text-indigo-800 text-sm sm:text-base">
+                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                  <p className="text-indigo-800">
                     <strong>Accreditation:</strong> Our laboratory is ISO 17025 accredited and follows international testing standards.
                   </p>
                 </div>
@@ -93,12 +93,12 @@ const TermsOfService: React.FC = () => {
 
             {/* Sample Submission Terms */}
             <section>
-              <div className="flex items-center space-x-3 mb-3 sm:mb-4">
-                <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Sample Submission & Testing</h2>
+              <div className="flex items-center space-x-3 mb-4">
+                <Clock className="h-6 w-6 text-indigo-600" />
+                <h2 className="text-2xl font-bold text-gray-900">Sample Submission & Testing</h2>
               </div>
-              <div className="text-gray-700 space-y-3 sm:space-y-4 text-sm sm:text-base">
-                <h3 className="text-base sm:text-lg font-semibold">Sample Requirements</h3>
+              <div className="text-gray-700 space-y-4">
+                <h3 className="text-lg font-semibold">Sample Requirements</h3>
                 <ul className="list-disc list-inside space-y-1 ml-4">
                   <li>Samples must be properly preserved and labeled</li>
                   <li>Minimum sample quantities as specified for each test</li>
@@ -106,7 +106,7 @@ const TermsOfService: React.FC = () => {
                   <li>Chain of custody documentation must be complete</li>
                 </ul>
                 
-                <h3 className="text-base sm:text-lg font-semibold">Testing Timeline</h3>
+                <h3 className="text-lg font-semibold">Testing Timeline</h3>
                 <ul className="list-disc list-inside space-y-1 ml-4">
                   <li>Standard testing: 3-5 business days</li>
                   <li>Rush testing: 24-48 hours (additional charges apply)</li>
@@ -118,11 +118,11 @@ const TermsOfService: React.FC = () => {
 
             {/* Payment Terms */}
             <section>
-              <div className="flex items-center space-x-3 mb-3 sm:mb-4">
-                <Scale className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Payment Terms</h2>
+              <div className="flex items-center space-x-3 mb-4">
+                <Scale className="h-6 w-6 text-indigo-600" />
+                <h2 className="text-2xl font-bold text-gray-900">Payment Terms</h2>
               </div>
-              <div className="text-gray-700 space-y-3 text-sm sm:text-base">
+              <div className="text-gray-700 space-y-3">
                 <ul className="list-disc list-inside space-y-1 ml-4">
                   <li>Payment is due upon sample submission unless credit terms are pre-approved</li>
                   <li>We accept cash, bank transfers, and approved credit arrangements</li>
@@ -135,12 +135,12 @@ const TermsOfService: React.FC = () => {
 
             {/* Liability and Limitations */}
             <section>
-              <div className="flex items-center space-x-3 mb-3 sm:mb-4">
-                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Liability & Limitations</h2>
+              <div className="flex items-center space-x-3 mb-4">
+                <AlertTriangle className="h-6 w-6 text-indigo-600" />
+                <h2 className="text-2xl font-bold text-gray-900">Liability & Limitations</h2>
               </div>
-              <div className="text-gray-700 space-y-3 sm:space-y-4 text-sm sm:text-base">
-                <h3 className="text-base sm:text-lg font-semibold">Our Responsibility</h3>
+              <div className="text-gray-700 space-y-4">
+                <h3 className="text-lg font-semibold">Our Responsibility</h3>
                 <ul className="list-disc list-inside space-y-1 ml-4">
                   <li>We maintain professional standards and quality control</li>
                   <li>Results are based on samples as received</li>
@@ -148,7 +148,7 @@ const TermsOfService: React.FC = () => {
                   <li>Our liability is limited to the cost of retesting</li>
                 </ul>
                 
-                <h3 className="text-base sm:text-lg font-semibold">Client Responsibility</h3>
+                <h3 className="text-lg font-semibold">Client Responsibility</h3>
                 <ul className="list-disc list-inside space-y-1 ml-4">
                   <li>Proper sample collection and preservation</li>
                   <li>Accurate information about sample origin and history</li>
@@ -160,11 +160,11 @@ const TermsOfService: React.FC = () => {
 
             {/* Confidentiality */}
             <section>
-              <div className="flex items-center space-x-3 mb-3 sm:mb-4">
-                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Confidentiality</h2>
+              <div className="flex items-center space-x-3 mb-4">
+                <FileText className="h-6 w-6 text-indigo-600" />
+                <h2 className="text-2xl font-bold text-gray-900">Confidentiality</h2>
               </div>
-              <div className="text-gray-700 space-y-3 text-sm sm:text-base">
+              <div className="text-gray-700 space-y-3">
                 <p>
                   We maintain strict confidentiality of all client information and test results. 
                   Information will only be disclosed:
@@ -179,11 +179,11 @@ const TermsOfService: React.FC = () => {
 
             {/* Dispute Resolution */}
             <section>
-              <div className="flex items-center space-x-3 mb-3 sm:mb-4">
-                <XCircle className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Dispute Resolution</h2>
+              <div className="flex items-center space-x-3 mb-4">
+                <XCircle className="h-6 w-6 text-indigo-600" />
+                <h2 className="text-2xl font-bold text-gray-900">Dispute Resolution</h2>
               </div>
-              <div className="text-gray-700 space-y-3 text-sm sm:text-base">
+              <div className="text-gray-700 space-y-3">
                 <p>
                   Any disputes arising from our services will be resolved through:
                 </p>
@@ -198,11 +198,11 @@ const TermsOfService: React.FC = () => {
 
             {/* Modifications */}
             <section>
-              <div className="flex items-center space-x-3 mb-3 sm:mb-4">
-                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Modifications</h2>
+              <div className="flex items-center space-x-3 mb-4">
+                <AlertTriangle className="h-6 w-6 text-indigo-600" />
+                <h2 className="text-2xl font-bold text-gray-900">Modifications</h2>
               </div>
-              <div className="text-gray-700 space-y-3 text-sm sm:text-base">
+              <div className="text-gray-700 space-y-3">
                 <p>
                   NSP Labs reserves the right to modify these terms at any time. 
                   Clients will be notified of significant changes via email or website notice. 
@@ -212,20 +212,20 @@ const TermsOfService: React.FC = () => {
             </section>
 
             {/* Contact Information */}
-            <section className="bg-gray-50 rounded-lg p-4 sm:p-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Contact Information</h2>
-              <p className="text-gray-700 mb-3 sm:mb-4 text-sm sm:text-base">
+            <section className="bg-gray-50 rounded-lg p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Contact Information</h2>
+              <p className="text-gray-700 mb-4">
                 For questions about these Terms of Service, please contact us:
               </p>
-              <div className="space-y-1 sm:space-y-2">
+              <div className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <span className="text-gray-700 text-sm sm:text-base">📧 nsplabs03@gmail.com</span>
+                  <span className="text-gray-700">📧 nsplabs03@gmail.com</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-gray-700 text-sm sm:text-base">📞 +91 9740579955</span>
+                  <span className="text-gray-700">📞 +91 9740579955</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-gray-700 text-sm sm:text-base">
+                  <span className="text-gray-700">
                     📍 NSP Labs 2nd floor, 1-1-32/3, Vijaylaxmi Estates,<br />
                     JP Road, Julupalem, Bhimavaram,<br />
                     West Godavari, Andhra Pradesh - 534202

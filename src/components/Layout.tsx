@@ -22,7 +22,8 @@ import {
   X,
   Users,
   ChevronDown,
-  Settings
+  Settings,
+  BookOpen
 } from 'lucide-react';
 
 const Layout: React.FC = () => {
@@ -87,6 +88,7 @@ const Layout: React.FC = () => {
     { path: '/customers', icon: Users, label: 'Sample Providers' },
     { path: '/submit-sample', icon: Upload, label: 'Submit Sample' },
     { path: '/samples', icon: FlaskConical, label: 'My Samples' },
+    { path: '/ledger', icon: BookOpen, label: 'Ledger' },
     { path: '/reports', icon: FileText, label: 'Reports' },
   ];
 

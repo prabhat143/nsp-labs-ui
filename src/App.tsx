@@ -12,6 +12,7 @@ import SampleHistory from './components/SampleHistory';
 import TestingTimeline from './components/TestingTimeline';
 import ReportHistory from './components/ReportHistory';
 import ReportDetails from './components/ReportDetails';
+import Ledger from './components/Ledger';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import Careers from './components/Careers';
@@ -65,6 +66,7 @@ function App() {
               <Route path="customers" element={<Customers />} />
               <Route path="submit-sample" element={<SubmitSample />} />
               <Route path="samples" element={<SampleHistory />} />
+              <Route path="ledger" element={<Ledger />} />
               <Route path="timeline/:sampleId" element={<TestingTimeline />} />
               <Route path="reports" element={<ReportHistory />} />
               <Route path="report/:reportId" element={<ReportDetails />} />

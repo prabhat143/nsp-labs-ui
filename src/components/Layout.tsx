@@ -233,10 +233,12 @@ const Layout: React.FC = () => {
         </nav>
 
         {/* Main Content Area */}
-        <main className="flex-1 px-4 sm:px-6 xl:px-12 py-6">
-          <SamplesProvider samples={samples} loading={samplesLoading} error={samplesError}>
-            <Outlet />
-          </SamplesProvider>
+        <main className="flex-1 px-4 sm:px-6 xl:px-12 py-6 max-w-full overflow-x-hidden">
+          <div className="w-full max-w-full">
+            <SamplesProvider samples={samples} loading={samplesLoading} error={samplesError}>
+              <Outlet />
+            </SamplesProvider>
+          </div>
         </main>
       </div>
 

@@ -13,6 +13,9 @@ import {
   Tag,
   User,
   Download,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -38,6 +41,11 @@ const SampleHistory: React.FC = () => {
     toDate: string;
     summaryType: string;
   } | null>(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [expandedSamples, setExpandedSamples] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const statusFilter = searchParams.get("status");
@@ -362,6 +370,39 @@ const SampleHistory: React.FC = () => {
 
   const filteredSamples = getFilteredSamples();
 
+  // Pagination calculations
+  const totalItems = filteredSamples.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentPageSamples = filteredSamples.slice(startIndex, endIndex);
+
+  // Reset to first page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter]);
+
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
+
+  // Toggle expand/collapse for sample details
+  const toggleSampleExpansion = (sampleId: string) => {
+    const newExpanded = new Set(expandedSamples);
+    if (newExpanded.has(sampleId)) {
+      newExpanded.delete(sampleId);
+    } else {
+      newExpanded.add(sampleId);
+    }
+    setExpandedSamples(newExpanded);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -369,10 +410,11 @@ const SampleHistory: React.FC = () => {
         {/* Download Summary Button - top right corner */}
         <button
           onClick={handleDownloadSummary}
-          className="absolute top-6 right-6 flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm shadow z-10"
+          className="absolute top-6 right-6 flex items-center justify-center space-x-2 px-2 sm:px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm shadow z-10"
+          title="Download Summary"
         >
           <Download className="w-4 h-4" />
-          <span>Download Summary</span>
+          <span className="hidden sm:inline">Download Summary</span>
         </button>
         {/* Modal for summary options */}
         {showSummaryModal && (
@@ -658,234 +700,318 @@ const SampleHistory: React.FC = () => {
             </button>
           </div>
         ) : (
-          filteredSamples.map((sample) => (
-            <div
-              key={sample.id}
-              className={`bg-white rounded-xl shadow-lg p-4 lg:p-6 hover:shadow-xl transition-all duration-300 ${
-                highlightedSample === sample.id
-                  ? "ring-2 ring-blue-500 bg-blue-50 shadow-2xl"
-                  : ""
-              }`}
-            >
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-4 mb-4">
+          <>
+            {/* Pagination Controls */}
+            {filteredSamples.length > 0 && (
+              <div className="bg-white rounded-xl shadow-lg p-4 mb-4 w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <span>
+                      Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} samples
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
-                      {getStatusIcon(sample.status)}
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                          sample.status
-                        )}`}
+                      <span className="text-sm text-gray-600 whitespace-nowrap">Show:</span>
+                      <select
+                        value={itemsPerPage}
+                        onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+                        className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
-                        {getStatusLabel(sample.status)}
-                      </span>
-                      {(sample.status.toUpperCase() === "COLLECTING" ||
-  sample.status.toUpperCase() === "TESTING") &&
-  sample.assigned && (
-    <div className="flex items-center space-x-2">
-      <span className="px-3 py-1 rounded-full text-xs font-medium border bg-blue-100 text-blue-800 border-blue-200 flex items-center space-x-1 group relative">
-        <User className="h-3 w-3" />
-        <span>Agent Assigned</span>
-        
-        {/* Agent Details Tooltip on Hover */}
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10 pointer-events-none">
-          <div className="text-center">
-            <div className="font-medium">
-              {sample.assigned.split("-")[0] || "Agent"}
-            </div>
-            <div className="text-gray-300">
-              {sample.assigned.split("-")[1] || "No phone"}
-            </div>
-          </div>
-          {/* Tooltip Arrow */}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-        </div>
-
-        {/* Clickable Phone Number for COLLECTING status */}
-        {sample.status.toUpperCase() === "COLLECTING" &&
-          sample.assigned.includes("-") && (
-            <a
-              href={`tel:${sample.assigned.split("-")[1]}`}
-              className="ml-2 underline text-blue-600 hover:text-blue-800 font-medium"
-              onClick={(e) => e.stopPropagation()}
-              title={`Call ${sample.assigned.split("-")[0]}`}
-            >
-              {sample.assigned.split("-")[1]}
-            </a>
-          )}
-
-        {/* Show ETA time if present */}
-        {sample.testingEta && (
-          <span className="ml-2 text-xs text-gray-500 font-normal">
-            ETA:{" "}
-            {new Date(sample.testingEta).toLocaleTimeString(
-              undefined,
-              {
-                hour: "2-digit",
-                minute: "2-digit",
-              }
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                      </select>
+                      <span className="text-sm text-gray-600 whitespace-nowrap">per page</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
-          </span>
-        )}
-      </span>
-    </div>
-  )}
 
+            {currentPageSamples.map((sample) => (
+              <div
+                key={sample.id}
+                className={`bg-white rounded-xl shadow-lg p-4 lg:p-6 hover:shadow-xl transition-all duration-300 w-full ${
+                  highlightedSample === sample.id
+                    ? "ring-2 ring-blue-500 bg-blue-50 shadow-2xl"
+                    : ""
+                }`}
+              >
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 w-full">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-4 mb-4">
+                      <div className="flex items-center space-x-2">
+                        {getStatusIcon(sample.status)}
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                            sample.status
+                          )}`}
+                        >
+                          {getStatusLabel(sample.status)}
+                        </span>
+                        {(sample.status.toUpperCase() === "COLLECTING" ||
+                          sample.status.toUpperCase() === "TESTING") &&
+                          sample.assigned && (
+                            <div className="flex items-center space-x-2">
+                              <span className="px-3 py-1 rounded-full text-xs font-medium border bg-blue-100 text-blue-800 border-blue-200 flex items-center space-x-1 group relative">
+                                <User className="h-3 w-3" />
+                                <span>Agent Assigned</span>
+                                
+                                {/* Agent Details Tooltip on Hover */}
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10 pointer-events-none">
+                                  <div className="text-center">
+                                    <div className="font-medium">
+                                      {sample.assigned.split("-")[0] || "Agent"}
+                                    </div>
+                                    <div className="text-gray-300">
+                                      {sample.assigned.split("-")[1] || "No phone"}
+                                    </div>
+                                  </div>
+                                  {/* Tooltip Arrow */}
+                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                </div>
+
+                                {/* Clickable Phone Number for COLLECTING status */}
+                                {sample.status.toUpperCase() === "COLLECTING" &&
+                                  sample.assigned.includes("-") && (
+                                    <a
+                                      href={`tel:${sample.assigned.split("-")[1]}`}
+                                      className="ml-2 underline text-blue-600 hover:text-blue-800 font-medium"
+                                      onClick={(e) => e.stopPropagation()}
+                                      title={`Call ${sample.assigned.split("-")[0]}`}
+                                    >
+                                      {sample.assigned.split("-")[1]}
+                                    </a>
+                                  )}
+
+                                {/* Show ETA time if present */}
+                                {sample.testingEta && (
+                                  <span className="ml-2 text-xs text-gray-500 font-normal">
+                                    ETA:{" "}
+                                    {new Date(sample.testingEta).toLocaleTimeString(
+                                      undefined,
+                                      {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      }
+                                    )}
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                          )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        Sample ID
-                      </h3>
-                      <p className="text-gray-600 font-mono text-sm break-all">
-                        {sample.id}
-                      </p>
+                    {/* 3-Column Layout for Basic Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          Sample ID
+                        </h3>
+                        <p className="text-gray-600 font-mono text-sm break-all">
+                          {sample.id}
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1 flex items-center">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          Location
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          {sample.samplerLocation}
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1 flex items-center">
+                          <Tag className="h-4 w-4 mr-1" />
+                          Category
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          {sample.shrimpCategory}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1 flex items-center">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        Location
-                      </h3>
-                      <p className="text-gray-600 text-sm">
-                        {sample.samplerLocation}
-                      </p>
+
+                    <div className="flex items-center text-sm text-gray-500 mb-4">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      Submitted on{" "}
+                      {new Date(sample.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1 flex items-center">
-                        <Tag className="h-4 w-4 mr-1" />
-                        Category
-                      </h3>
-                      <p className="text-gray-600 text-sm">
-                        {sample.shrimpCategory}
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="mb-4">
-                    <h3 className="font-semibold text-gray-900 mb-1">
-                      Sub-category
-                    </h3>
-                    <p className="text-gray-600 text-sm">
-                      {sample.shrimpSubCategory}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center text-sm text-gray-500 mb-4">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    Submitted on{" "}
-                    {new Date(sample.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </div>
-
-                  {/* View Details Section */}
-                  <details className="mt-4 group">
-                    <summary className="cursor-pointer text-blue-600 hover:text-blue-800 font-medium text-sm focus:outline-none group-open:text-blue-800">
-                      View Details
-                    </summary>
-                    <div className="mt-3 p-4 bg-gray-50 rounded-lg space-y-2">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium text-gray-700">
-                            Sampler Name:
-                          </span>
-                          <span className="ml-2 text-gray-600">
-                            {sample.samplerName}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-700">
-                            Status:
-                          </span>
-                          <span className="ml-2 text-gray-600">
-                            {getStatusLabel(sample.status)}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-700">
-                            Created At:
-                          </span>
-                          <span className="ml-2 text-gray-600">
-                            {new Date(sample.createdAt).toLocaleString()}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-700">
-                            Updated At:
-                          </span>
-                          <span className="ml-2 text-gray-600">
-                            {new Date(sample.updatedAt).toLocaleString()}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-700">
-                            Location:
-                          </span>
-                          <span className="ml-2 text-gray-600">
-                            {sample.samplerLocation}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-700">
-                            Category:
-                          </span>
-                          <span className="ml-2 text-gray-600">
-                            {sample.shrimpCategory}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-700">
-                            Sub-category:
-                          </span>
-                          <span className="ml-2 text-gray-600">
-                            {sample.shrimpSubCategory}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-700">
-                            Agent Assigned:
-                          </span>
-                          <span className="ml-2 text-gray-600">
-                            {sample.assigned ? "Yes" : "No"}
-                          </span>
+                    {/* Collapsible Details Section */}
+                    <div className="mt-4">
+                      <button
+                        onClick={() => toggleSampleExpansion(sample.id)}
+                        className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 font-medium text-sm focus:outline-none transition-colors duration-200"
+                      >
+                        <span>View Details</span>
+                        <ChevronDown 
+                          className={`h-4 w-4 transform transition-transform duration-300 ${
+                            expandedSamples.has(sample.id) ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </button>
+                      
+                      <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                        expandedSamples.has(sample.id) 
+                          ? 'max-h-96 opacity-100 mt-3' 
+                          : 'max-h-0 opacity-0'
+                      }`}>
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <span className="font-medium text-gray-700">
+                                Sampler Name:
+                              </span>
+                              <p className="text-gray-600 mt-1">
+                                {sample.samplerName}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">
+                                Sub-category:
+                              </span>
+                              <p className="text-gray-600 mt-1">
+                                {sample.shrimpSubCategory}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">
+                                Agent Assigned:
+                              </span>
+                              <p className="text-gray-600 mt-1">
+                                {sample.assigned ? "Yes" : "No"}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">
+                                Created At:
+                              </span>
+                              <p className="text-gray-600 mt-1">
+                                {new Date(sample.createdAt).toLocaleString()}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">
+                                Updated At:
+                              </span>
+                              <p className="text-gray-600 mt-1">
+                                {new Date(sample.updatedAt).toLocaleString()}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-700">
+                                Status:
+                              </span>
+                              <p className="text-gray-600 mt-1">
+                                {getStatusLabel(sample.status)}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </details>
-                </div>
+                  </div>
 
-                <div className="flex flex-col space-y-2 lg:ml-4">
-                  {(sample.status.toUpperCase() === "PROCESSING" ||
-                    sample.status.toUpperCase() === "TESTING" ||
-                    sample.status.toUpperCase() === "COMPLETED") && (
-                    <button
-                      onClick={() => handleViewTimeline(sample.id)}
-                      className="flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span>View Timeline</span>
-                    </button>
-                  )}
+                  <div className="flex flex-col space-y-2 lg:ml-4">
+                    {(sample.status.toUpperCase() === "PROCESSING" ||
+                      sample.status.toUpperCase() === "TESTING" ||
+                      sample.status.toUpperCase() === "COMPLETED") && (
+                      <button
+                        onClick={() => handleViewTimeline(sample.id)}
+                        className="flex items-center justify-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>View Timeline</span>
+                      </button>
+                    )}
 
-                  {sample.status.toUpperCase() === "COMPLETED" && (
-                    <button
-                      onClick={() => navigate("/reports")}
-                      className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
-                    >
-                      <FileText className="h-4 w-4" />
-                      <span>View Report</span>
-                    </button>
-                  )}
+                    {sample.status.toUpperCase() === "COMPLETED" && (
+                      <button
+                        onClick={() => navigate("/reports")}
+                        className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
+                      >
+                        <FileText className="h-4 w-4" />
+                        <span>View Report</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            ))}
+
+            {/* Pagination Navigation */}
+            {filteredSamples.length > itemsPerPage && (
+              <div className="bg-white rounded-xl shadow-lg p-4 mt-6 w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                  <div className="text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="flex items-center px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </button>
+                    
+                    <div className="flex items-center space-x-1">
+                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+
+                        if (pageNum < 1 || pageNum > totalPages) return null;
+
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                            className={`w-10 h-10 text-sm font-medium rounded-lg transition-colors ${
+                              currentPage === pageNum
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="flex items-center px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

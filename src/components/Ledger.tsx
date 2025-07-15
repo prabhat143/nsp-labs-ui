@@ -535,11 +535,12 @@ const Ledger: React.FC = () => {
             </div>
 
             <div className="flex flex-col gap-2 min-[480px]:flex-row min-[480px]:items-center min-[480px]:gap-x-2 sm:gap-x-3">
-              {/* Items per page selector */}
-              <div className="flex items-center justify-start gap-x-1 sm:gap-x-2 text-xs">
-                <span className="text-gray-600 flex-shrink-0">Show:</span>
-                <select
-                  value={itemsPerPage}
+              <div className="flex flex-col min-[480px]:flex-row min-[480px]:items-center min-[480px]:gap-x-2 sm:gap-x-3 gap-y-2">
+                {/* Show per page */}
+                <div className="flex items-center justify-start gap-x-1 sm:gap-x-2 text-xs">
+                  <span className="text-gray-600 flex-shrink-0">Show:</span>
+                  <select
+                    value={itemsPerPage}
                   onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
                   className="border border-gray-300 rounded px-1 py-1 text-xs focus:ring-2 focus:ring-emerald-500 focus:border-transparent min-w-[40px] max-w-[60px]"
                 >
@@ -567,6 +568,7 @@ const Ledger: React.FC = () => {
                 </span>
               </button>
             </div>
+          </div>
           </div>
         </div>
 

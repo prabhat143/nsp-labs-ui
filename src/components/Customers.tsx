@@ -14,6 +14,8 @@ import {
   Users,
   ChevronDown,
   ChevronRight,
+  MessageCircle,
+  Info,
 } from 'lucide-react';
 
 // Define proper types for the component props
@@ -47,6 +49,44 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({ value, onCh
       setInputValue(value);
     }
   }, [value]);
+
+  // Parse coordinates from text input (format: lat,lng or lat, lng)
+  const parseCoordinates = (text: string) => {
+    const coordRegex = /^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/;
+    const match = text.trim().match(coordRegex);
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+      if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        return { lat, lng };
+      }
+    }
+    return null;
+  };
+
+  // Handle manual input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+
+    // Check if it's coordinates format
+    const coordinates = parseCoordinates(newValue);
+    if (coordinates) {
+      // If it's valid coordinates, create location object
+      const locationData = JSON.stringify({
+        address: `${coordinates.lat}, ${coordinates.lng}`,
+        coordinates: coordinates,
+        placeId: ""
+      });
+      
+      onChange({
+        target: {
+          name: "location",
+          value: locationData
+        },
+      });
+    }
+  };
 
   // Google Places Autocomplete
   useEffect(() => {
@@ -109,14 +149,14 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({ value, onCh
         type="text"
         name="location"
         value={inputValue}
-        onChange={(e) => {
-          setInputValue(e.target.value);
-          // Do not call onChange here, only update local input
-        }}
+        onChange={handleInputChange}
         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-        placeholder="Enter sample provider location"
+        placeholder="Enter location or coordinates (lat, lng)"
         autoComplete="off"
       />
+      <div className="text-xs text-gray-500 mt-1">
+        You can enter an address or coordinates like: 19.0760, 72.8777
+      </div>
     </div>
   );
 };
@@ -138,6 +178,39 @@ const FarmerLocationAutocomplete: React.FC<FarmerLocationAutocompleteProps> = ({
       setInputValue(value);
     }
   }, [value]);
+
+  // Parse coordinates from text input (format: lat,lng or lat, lng)
+  const parseCoordinates = (text: string) => {
+    const coordRegex = /^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/;
+    const match = text.trim().match(coordRegex);
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+      if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        return { lat, lng };
+      }
+    }
+    return null;
+  };
+
+  // Handle manual input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+
+    // Check if it's coordinates format
+    const coordinates = parseCoordinates(newValue);
+    if (coordinates) {
+      // If it's valid coordinates, create location object
+      const locationData = JSON.stringify({
+        address: `${coordinates.lat}, ${coordinates.lng}`,
+        coordinates: coordinates,
+        placeId: ""
+      });
+      
+      onChange(locationData);
+    }
+  };
 
   // Google Places Autocomplete
   useEffect(() => {
@@ -194,14 +267,14 @@ const FarmerLocationAutocomplete: React.FC<FarmerLocationAutocompleteProps> = ({
         ref={inputRef}
         type="text"
         value={inputValue}
-        onChange={(e) => {
-          setInputValue(e.target.value);
-          // Do not call onChange here, only update local input
-        }}
+        onChange={handleInputChange}
         className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
         placeholder={placeholder}
         autoComplete="off"
       />
+      <div className="text-xs text-gray-500 mt-1">
+        Address or coordinates (lat, lng)
+      </div>
     </div>
   );
 };
@@ -421,7 +494,26 @@ const Customers: React.FC = () => {
         altPhoneNumber: newCustomer.altPhoneNumber,
         location: locationToSend,
         coordinates: fullLocationData?.coordinates,
-        farmers: newCustomer.userType === "Agent" ? newCustomer.farmers : undefined,
+        farmers: newCustomer.userType === "Agent" ? newCustomer.farmers.map(farmer => {
+          // Parse farmer location for coordinates
+          let farmerCoordinates = null;
+          try {
+            if (farmer.location && farmer.location.trim().startsWith('{')) {
+              const locationData = JSON.parse(farmer.location);
+              farmerCoordinates = locationData.coordinates;
+            }
+          } catch (e) {
+            // If parsing fails, coordinates will be null
+          }
+          
+          return {
+            name: farmer.name,
+            phoneNumber: farmer.phoneNumber,
+            altPhoneNumber: farmer.altPhoneNumber,
+            location: farmer.location.trim().startsWith('{') ? JSON.parse(farmer.location).address : farmer.location,
+            coordinates: farmerCoordinates
+          };
+        }) : undefined,
       });
 
       // Reload customers from API
@@ -776,11 +868,17 @@ const Customers: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Phone Number */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                      Phone Number (WhatsApp)
+                      <div className="relative ml-2 group">
+                        <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 px-3 py-2 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                          Provide WhatsApp number to share reports and latest updates
+                        </div>
+                      </div>
                     </label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <MessageCircle className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-green-500" />
                       <input
                         type="tel"
                         name="phoneNumber"
@@ -788,7 +886,7 @@ const Customers: React.FC = () => {
                         onChange={handleCustomerInputChange}
                         required
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="Enter sample provider phone number"
+                        placeholder="Enter WhatsApp number"
                       />
                     </div>
                   </div>
@@ -847,7 +945,15 @@ const Customers: React.FC = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm text-gray-600 mb-1">Phone Number</label>
+                            <label className="block text-sm text-gray-600 mb-1 flex items-center">
+                              Phone Number (WhatsApp)
+                              <div className="relative ml-1 group">
+                                <Info className="h-3 w-3 text-gray-400 cursor-help" />
+                                <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                                  WhatsApp for reports
+                                </div>
+                              </div>
+                            </label>
                             <input
                               type="tel"
                               value={farmer.phoneNumber}
@@ -857,7 +963,7 @@ const Customers: React.FC = () => {
                                 setNewCustomer({ ...newCustomer, farmers: updatedFarmers });
                               }}
                               className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                              placeholder="Enter phone number"
+                              placeholder="Enter WhatsApp number"
                             />
                           </div>
                           <div>
@@ -1077,7 +1183,7 @@ const Customers: React.FC = () => {
                                           <span className="font-medium text-gray-800 text-sm">{farmer.name}</span>
                                           <div className="flex items-center space-x-4 text-xs text-gray-600">
                                             <span className="flex items-center">
-                                              <Phone className="h-3 w-3 mr-1" />
+                                              <MessageCircle className="h-3 w-3 mr-1 text-green-500" />
                                               {farmer.phoneNumber}
                                             </span>
                                             {farmer.altPhoneNumber && (
@@ -1117,7 +1223,7 @@ const Customers: React.FC = () => {
                         <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                           <div className="flex flex-col space-y-1">
                             <div className="flex items-center">
-                              <Phone className="h-4 w-4 text-gray-400 mr-1" />
+                              <MessageCircle className="h-4 w-4 text-green-500 mr-1" />
                               <span className="text-sm text-gray-600">
                                 {customer.phoneNumber}
                               </span>

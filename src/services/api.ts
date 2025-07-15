@@ -148,7 +148,16 @@ export interface UpdateSampleProviderRequest {
   };
   userType?: string;
   altPhoneNumber?: string;
-  farmers?: Array<{ name: string; phoneNumber: string; altPhoneNumber?: string; location: string }>;
+  farmers?: Array<{ 
+    name: string; 
+    phoneNumber: string; 
+    altPhoneNumber?: string; 
+    location: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  }>;
 }
 
 export interface SampleSubmissionRequest {

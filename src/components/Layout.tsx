@@ -1,6 +1,6 @@
 // src/layouts/Layout.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -8,6 +8,7 @@ import { SamplesProvider } from '../contexts/SamplesContext';
 import { apiService } from '../services/api';
 import { SampleSubmission } from '../types';
 import NotificationBell from './NotificationBell';
+import Profile from './Profile';
 import { useRealtime } from '../contexts/RealtimeContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 import {
@@ -19,7 +20,9 @@ import {
   Upload,
   Menu,
   X,
-  Users
+  Users,
+  ChevronDown,
+  Settings
 } from 'lucide-react';
 
 const Layout: React.FC = () => {
@@ -28,6 +31,9 @@ const Layout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
 
   const [samples, setSamples] = useState<SampleSubmission[]>([]);
   const [samplesLoading, setSamplesLoading] = useState(true);
@@ -49,9 +55,35 @@ const Layout: React.FC = () => {
     navigate('/login');
   };
 
+  const toggleProfileDropdown = () => {
+    setIsProfileDropdownOpen(!isProfileDropdownOpen);
+  };
+
+  const handleViewProfile = () => {
+    setShowProfileModal(true);
+    setIsProfileDropdownOpen(false);
+  };
+
+  const handleCloseProfile = () => {
+    setShowProfileModal(false);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const menuItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
-    { path: '/profile', icon: User, label: 'Profile' },
     { path: '/customers', icon: Users, label: 'Sample Providers' },
     { path: '/submit-sample', icon: Upload, label: 'Submit Sample' },
     { path: '/samples', icon: FlaskConical, label: 'My Samples' },
@@ -88,17 +120,55 @@ const Layout: React.FC = () => {
 
             <div className="flex items-center space-x-4">
               <NotificationBell />
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                <p className="text-xs text-gray-500">{user?.email}</p>
+              
+              {/* Profile Dropdown */}
+              <div className="relative" ref={profileDropdownRef}>
+                <button
+                  onClick={toggleProfileDropdown}
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center">
+                    <User className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="text-left hidden sm:block">
+                    <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                    <p className="text-xs text-gray-500">{user?.email}</p>
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-gray-400" />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isProfileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    {/* User Info Section - Only visible on mobile (when header info is hidden) */}
+                    <div className="px-4 py-3 border-b border-gray-200 sm:hidden">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Menu Items */}
+                    <div className="py-1">
+                      <button
+                        onClick={handleViewProfile}
+                        className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <Settings className="h-4 w-4 mr-3 text-gray-400" />
+                        View Profile
+                      </button>
+                      <hr className="my-1 border-gray-200" />
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4 mr-3" />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-500 hover:bg-red-600 transition-colors"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Logout</span>
-              </button>
             </div>
           </div>
         </div>
@@ -170,6 +240,26 @@ const Layout: React.FC = () => {
 
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 bg-black bg-opacity-25 z-30" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
+      {/* Profile Modal */}
+      {showProfileModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Profile Settings</h2>
+              <button
+                onClick={handleCloseProfile}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-6">
+              <Profile />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

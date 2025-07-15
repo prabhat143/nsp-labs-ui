@@ -46,6 +46,7 @@ const SampleHistory: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [expandedSamples, setExpandedSamples] = useState<Set<string>>(new Set());
+  const [isStatsExpanded, setIsStatsExpanded] = useState(true);
 
   useEffect(() => {
     const statusFilter = searchParams.get("status");
@@ -540,96 +541,129 @@ const SampleHistory: React.FC = () => {
 
         {/* Statistics */}
         <div className="w-full">
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 w-full">
-            {[
-              {
-                label: "Total Samples",
-                value: samples.length,
-                color: "bg-blue-100 text-blue-800",
-                filterKey: "all",
-                clickable: true,
-              },
-              {
-                label: "Pending",
-                value: samples.filter((s) => {
-                  const status = s.status.toUpperCase();
-                  return status === "PENDING" || status === "COLLECTING";
-                }).length,
-                color: "bg-yellow-100 text-yellow-800",
-                filterKey: "pending",
-                clickable:
-                  samples.filter((s) => {
+          {/* Collapsible Toggle Button */}
+          <div className="mb-4">
+            <button
+              onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+              className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 font-medium text-sm focus:outline-none transition-colors duration-200"
+            >
+              <span>{isStatsExpanded ? 'Hide Summary' : 'Show Summary'}</span>
+              <ChevronDown 
+                className={`h-4 w-4 transform transition-transform duration-300 ${
+                  isStatsExpanded ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+          </div>
+          
+          {/* Multi-color border when collapsed */}
+          {!isStatsExpanded && (
+            <div className="flex h-1 rounded-full overflow-hidden">
+              <div className="flex-1 bg-blue-400"></div>
+              <div className="flex-1 bg-yellow-400"></div>
+              <div className="flex-1 bg-rose-400"></div>
+              <div className="flex-1 bg-purple-400"></div>
+              <div className="flex-1 bg-green-400"></div>
+            </div>
+          )}
+          
+          {/* Collapsible Statistics Grid */}
+          <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+            isStatsExpanded 
+              ? 'max-h-96 opacity-100' 
+              : 'max-h-0 opacity-0'
+          }`}>
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 w-full">
+              {[
+                {
+                  label: "Total Samples",
+                  value: samples.length,
+                  color: "bg-blue-100 text-blue-800",
+                  filterKey: "all",
+                  clickable: true,
+                },
+                {
+                  label: "Pending",
+                  value: samples.filter((s) => {
                     const status = s.status.toUpperCase();
                     return status === "PENDING" || status === "COLLECTING";
-                  }).length > 0,
-              },
-              // Remove Collecting tile
-              {
-                label: "Collected",
-                value: samples.filter(
-                  (s) => s.status.toUpperCase() === "COLLECTED"
-                ).length,
-                color: "bg-rose-100 text-rose-800",
-                filterKey: "collected",
-                clickable:
-                  samples.filter((s) => s.status.toUpperCase() === "COLLECTED")
-                    .length > 0,
-              },
-              {
-                label: "Testing",
-                value: samples.filter(
-                  (s) =>
-                    s.status.toUpperCase() === "PROCESSING" ||
-                    s.status.toUpperCase() === "TESTING"
-                ).length,
-                color: "bg-purple-100 text-purple-800",
-                filterKey: "testing",
-                clickable:
-                  samples.filter(
+                  }).length,
+                  color: "bg-yellow-100 text-yellow-800",
+                  filterKey: "pending",
+                  clickable:
+                    samples.filter((s) => {
+                      const status = s.status.toUpperCase();
+                      return status === "PENDING" || status === "COLLECTING";
+                    }).length > 0,
+                },
+                // Remove Collecting tile
+                {
+                  label: "Collected",
+                  value: samples.filter(
+                    (s) => s.status.toUpperCase() === "COLLECTED"
+                  ).length,
+                  color: "bg-rose-100 text-rose-800",
+                  filterKey: "collected",
+                  clickable:
+                    samples.filter((s) => s.status.toUpperCase() === "COLLECTED")
+                      .length > 0,
+                },
+                {
+                  label: "Testing",
+                  value: samples.filter(
                     (s) =>
                       s.status.toUpperCase() === "PROCESSING" ||
                       s.status.toUpperCase() === "TESTING"
-                  ).length > 0,
-              },
-              {
-                label: "Completed",
-                value: samples.filter(
-                  (s) => s.status.toUpperCase() === "COMPLETED"
-                ).length,
-                color: "bg-green-100 text-green-800",
-                filterKey: "completed",
-                clickable:
-                  samples.filter((s) => s.status.toUpperCase() === "COMPLETED")
-                    .length > 0,
-              },
-            ].map((stat, index) => (
-              <div
-                key={index}
-                onClick={
-                  stat.clickable
-                    ? () => setActiveFilter(stat.filterKey)
-                    : undefined
-                }
-                className={`${
-                  stat.color
-                } rounded-lg p-3 lg:p-4 text-center flex flex-col items-center justify-center transition-all duration-200 w-full col-span-1 ${
-                  stat.clickable
-                    ? "cursor-pointer hover:scale-105 transform hover:shadow-md"
-                    : ""
-                } ${
-                  activeFilter === stat.filterKey
-                    ? "ring-2 ring-blue-500 ring-offset-2"
-                    : ""
-                }`}
-              >
-                <div className="text-lg lg:text-2xl font-bold mb-1">
-                  {stat.value}
+                  ).length,
+                  color: "bg-purple-100 text-purple-800",
+                  filterKey: "testing",
+                  clickable:
+                    samples.filter(
+                      (s) =>
+                        s.status.toUpperCase() === "PROCESSING" ||
+                        s.status.toUpperCase() === "TESTING"
+                    ).length > 0,
+                },
+                {
+                  label: "Completed",
+                  value: samples.filter(
+                    (s) => s.status.toUpperCase() === "COMPLETED"
+                  ).length,
+                  color: "bg-green-100 text-green-800",
+                  filterKey: "completed",
+                  clickable:
+                    samples.filter((s) => s.status.toUpperCase() === "COMPLETED")
+                      .length > 0,
+                },
+              ].map((stat, index) => (
+                <div
+                  key={index}
+                  onClick={
+                    stat.clickable
+                      ? () => setActiveFilter(stat.filterKey)
+                      : undefined
+                  }
+                  className={`${
+                    stat.color
+                  } rounded-lg p-3 lg:p-4 text-center flex flex-col items-center justify-center transition-all duration-200 w-full col-span-1 ${
+                    stat.clickable
+                      ? "cursor-pointer hover:scale-105 transform hover:shadow-md"
+                      : ""
+                  } ${
+                    activeFilter === stat.filterKey
+                      ? "border-2 border-blue-500 shadow-lg"
+                      : "shadow-sm"
+                  }`}
+                >
+                  <div className="text-lg lg:text-2xl font-bold mb-1">
+                    {stat.value}
+                  </div>
+                  <div className="text-xs lg:text-sm font-medium">
+                    {stat.label}
+                  </div>
                 </div>
-                <div className="text-xs lg:text-sm font-medium">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -806,31 +840,36 @@ const SampleHistory: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* 3-Column Layout for Basic Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-1">
-                          Sample ID
-                        </h3>
-                        <p className="text-gray-600 font-mono text-sm break-all">
-                          {sample.id}
-                        </p>
+                    {/* Sample Info Layout: Row 1 - Sample ID & Location, Row 2 - Category */}
+                    <div className="mb-4">
+                      {/* First Row: Sample ID and Location */}
+                      <div className="grid grid-cols-2 gap-2 md:gap-4 mb-3">
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-1 text-xs md:text-sm">
+                            Sample ID
+                          </h3>
+                          <p className="text-gray-600 font-mono text-xs md:text-sm break-all">
+                            {sample.id}
+                          </p>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 mb-1 flex items-center text-xs md:text-sm">
+                            <MapPin className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                            Location
+                          </h3>
+                          <p className="text-gray-600 text-xs md:text-sm">
+                            {sample.samplerLocation}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-1 flex items-center">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          Location
-                        </h3>
-                        <p className="text-gray-600 text-sm">
-                          {sample.samplerLocation}
-                        </p>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-1 flex items-center">
-                          <Tag className="h-4 w-4 mr-1" />
+                      
+                      {/* Second Row: Category (Full Width on New Line) */}
+                      <div className="block w-full">
+                        <h3 className="font-semibold text-gray-900 mb-1 flex items-center text-xs md:text-sm">
+                          <Tag className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                           Category
                         </h3>
-                        <p className="text-gray-600 text-sm">
+                        <p className="text-gray-600 text-xs md:text-sm">
                           {sample.shrimpCategory}
                         </p>
                       </div>

@@ -18,7 +18,8 @@ import {
   Home,
   Upload,
   Menu,
-  X
+  X,
+  Users
 } from 'lucide-react';
 
 const Layout: React.FC = () => {
@@ -51,6 +52,7 @@ const Layout: React.FC = () => {
   const menuItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
     { path: '/profile', icon: User, label: 'Profile' },
+    { path: '/customers', icon: Users, label: 'Sample Providers' },
     { path: '/submit-sample', icon: Upload, label: 'Submit Sample' },
     { path: '/samples', icon: FlaskConical, label: 'My Samples' },
     { path: '/reports', icon: FileText, label: 'Reports' },

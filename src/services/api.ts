@@ -92,12 +92,24 @@ export interface CustomerProfileResponse {
 export interface SampleProvider {
   id: string;
   samplerName: string;
+  userType: string | null;
   phoneNumber: string;
+  altPhoneNumber?: string | null;
   location: string;
   coordinates?: {
     lat: number;
     lng: number;
   };
+  farmers?: Array<{
+    name: string;
+    phoneNumber: string;
+    altPhoneNumber?: string;
+    location: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    } | null;
+  }> | null;
 }
 
 export interface AddSampleProviderRequest {
@@ -108,6 +120,9 @@ export interface AddSampleProviderRequest {
     lat: number;
     lng: number;
   };
+  userType?: string;
+  altPhoneNumber?: string;
+  farmers?: Array<{ name: string; phoneNumber: string; altPhoneNumber?: string; location: string }>;
 }
 
 export interface AddSampleProviderResponse {
@@ -131,6 +146,9 @@ export interface UpdateSampleProviderRequest {
     lat: number;
     lng: number;
   };
+  userType?: string;
+  altPhoneNumber?: string;
+  farmers?: Array<{ name: string; phoneNumber: string; altPhoneNumber?: string; location: string }>;
 }
 
 export interface SampleSubmissionRequest {

@@ -7,6 +7,7 @@ import Layout from './components/Layout';
 import LoginRegister from './components/LoginRegister';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
+import Customers from './components/Customers';
 import SubmitSample from './components/SubmitSample';
 import SampleHistory from './components/SampleHistory';
 import TestingTimeline from './components/TestingTimeline';
@@ -63,6 +64,7 @@ function App() {
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="profile" element={<Profile />} />
+              <Route path="customers" element={<Customers />} />
               <Route path="submit-sample" element={<SubmitSample />} />
               <Route path="samples" element={<SampleHistory />} />
               <Route path="timeline/:sampleId" element={<TestingTimeline />} />

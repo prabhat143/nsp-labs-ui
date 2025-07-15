@@ -7,6 +7,18 @@ export interface Customer {
     lat: number;
     lng: number;
   };
+  userType?: string;
+  altPhoneNumber?: string;
+  farmers?: Array<{ 
+    name: string; 
+    phoneNumber: string; 
+    altPhoneNumber?: string; 
+    location: string;
+    coordinates?: {
+      lat: number;
+      lng: number;
+    };
+  }>;
 }
 
 export interface User {
@@ -18,7 +30,9 @@ export interface User {
   company?: string;
   phone?: string;
   address?: string;
-  customers?: Customer[]; // Add this line to your User interface
+  customers?: Customer[];
+  userType?: string;
+  farmers?: Array<{ name: string; phoneNumber: string; location: string }>;
 }
 
 export interface Sample {

@@ -41,11 +41,10 @@ const Profile: React.FC = () => {
       setError(''); // Clear previous errors
       
       const result = await updateUser(formData);
+      
       if (result.success) {
         setIsEditing(false);
         showToast(result.message || 'Profile updated successfully!', 'success');
-        // Auto-refresh profile after update
-        await fetchUserProfile();
       } else {
         const errorMessage = result.error || 'Failed to update profile';
         setError(errorMessage);

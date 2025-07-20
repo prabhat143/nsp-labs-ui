@@ -354,6 +354,75 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []); // Empty dependency array since we get fresh user data inside the function
 
+  const sendVerificationEmail = async (email: string): Promise<{ success: boolean; message?: string; error?: string }> => {
+    try {
+      setError(null);
+      setLoading(true);
+      
+      const response = await apiService.sendVerificationEmail(email);
+      
+      setLoading(false);
+      return { 
+        success: response.success, 
+        message: response.message 
+      };
+    } catch (error: any) {
+      console.error('Send verification email failed:', error);
+      setLoading(false);
+      
+      let errorMessage = 'Failed to send verification email';
+      
+      if (error.response?.status === 400) {
+        errorMessage = error.response.data?.error || 'Invalid email address';
+      } else if (error.response?.status === 429) {
+        errorMessage = 'Too many requests. Please wait before requesting another code.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else {
+        errorMessage = error.message || 'Failed to send verification email';
+      }
+      
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  const verifyEmail = async (email: string, code: string): Promise<{ success: boolean; verified?: boolean; message?: string; error?: string }> => {
+    try {
+      setError(null);
+      setLoading(true);
+      
+      const response = await apiService.verifyEmail(email, code);
+      
+      setLoading(false);
+      return { 
+        success: response.success,
+        verified: response.verified,
+        message: response.message 
+      };
+    } catch (error: any) {
+      console.error('Email verification failed:', error);
+      setLoading(false);
+      
+      let errorMessage = 'Email verification failed';
+      
+      if (error.response?.status === 400) {
+        errorMessage = error.response.data?.error || 'Invalid verification code';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Verification code not found or expired';
+      } else if (error.response?.status === 429) {
+        errorMessage = 'Too many verification attempts. Please request a new code.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else {
+        errorMessage = error.message || 'Email verification failed';
+      }
+      
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
   const value: AuthContextType = {
     user,
     loading,
@@ -363,6 +432,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     updateUser,
     fetchUserProfile,
+    sendVerificationEmail,
+    verifyEmail,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

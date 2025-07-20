@@ -181,6 +181,27 @@ export interface SampleSubmissionResponse {
   message: string;
 }
 
+export interface SendVerificationEmailRequest {
+  email: string;
+}
+
+export interface SendVerificationEmailResponse {
+  success: boolean;
+  message: string;
+  expiresAt: string;
+}
+
+export interface VerifyEmailRequest {
+  email: string;
+  code: string;
+}
+
+export interface VerifyEmailResponse {
+  success: boolean;
+  message: string;
+  verified: boolean;
+}
+
 class ApiService {
   private baseURL: string;
 
@@ -371,6 +392,27 @@ class ApiService {
 
     return this.makeRequest<SampleSubmission[]>(API_ENDPOINTS.SAMPLES.GET_BY_CONSUMER(customerId), {
       method: 'GET',
+    });
+  }
+
+  async sendVerificationEmail(email: string): Promise<SendVerificationEmailResponse> {
+    return this.makeRequest<SendVerificationEmailResponse>('/auth/send-verification', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async verifyEmail(email: string, code: string): Promise<VerifyEmailResponse> {
+    return this.makeRequest<VerifyEmailResponse>('/auth/verify-email', {
+      method: 'POST',
+      body: JSON.stringify({ email, code }),
+    });
+  }
+
+  async resendVerificationEmail(email: string): Promise<SendVerificationEmailResponse> {
+    return this.makeRequest<SendVerificationEmailResponse>('/auth/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
     });
   }
 }

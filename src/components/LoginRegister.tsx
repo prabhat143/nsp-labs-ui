@@ -2,11 +2,21 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
-import { Mail, Lock, User, AlertCircle, Menu, X, TestTube, Droplets, Beaker, Zap, Award, Shield, Clock, Users } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, Menu, X, TestTube, Droplets, Beaker, Zap, Award, Shield, Clock, Users, Eye, EyeOff } from 'lucide-react';
+import PasswordStrengthIndicator from './PasswordStrengthIndicator';
+import EmailVerification from './EmailVerification';
+import PasswordSuggestions from './PasswordSuggestions';
+import EmailValidationInput from './EmailValidationInput';
+import { validatePassword } from '../utils/passwordValidation';
+import { EmailVerificationResult } from '../utils/emailVerification';
 
 const LoginRegister: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordSuggestions, setShowPasswordSuggestions] = useState(false);
+  const [emailValidationResult, setEmailValidationResult] = useState<EmailVerificationResult | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -14,6 +24,7 @@ const LoginRegister: React.FC = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [passwordValidation, setPasswordValidation] = useState(validatePassword(''));
   
   const { login, register, error: authError } = useAuth();
   const { showToast, ToastContainer } = useToast();
@@ -25,6 +36,7 @@ const LoginRegister: React.FC = () => {
     setLoading(true);
 
     try {
+
       if (isLogin) {
         const success = await login(formData.email, formData.password);
         if (success) {
@@ -34,8 +46,29 @@ const LoginRegister: React.FC = () => {
           setError(authError || 'Login failed. Please check your credentials and try again.');
         }
       } else {
+        // Registration validation
         if (!formData.fullName.trim()) {
           setError('Name is required');
+          setLoading(false);
+          return;
+        }
+
+        // Enhanced email validation for registration using QuickEmailVerification API
+        if (emailValidationResult) {
+          // Check if email is valid based on smtp_check
+          const isEmailValid = emailValidationResult.smtp_check;
+          
+          if (!isEmailValid) {
+            setError('Email validation failed: Invalid email address');
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Password validation for registration
+        const passwordValidation = validatePassword(formData.password);
+        if (!passwordValidation.isValid) {
+          setError('Password does not meet the required criteria. Please check the requirements below.');
           setLoading(false);
           return;
         }
@@ -43,13 +76,8 @@ const LoginRegister: React.FC = () => {
         const result = await register(formData.email, formData.password, formData.fullName);
         
         if (result.success) {
-          // Show success message and switch to login mode
-          setIsLogin(true);
-          setFormData({ email: formData.email, password: '', fullName: '' });
-          setError(''); // Clear any previous errors
-          
-          // Show success toast
-          showToast(result.message || 'Registration successful! Please login with your credentials.', 'success');
+          // Show email verification step
+          setShowEmailVerification(true);
         } else {
           setError(result.error || 'Registration failed. Please try again.');
         }
@@ -67,12 +95,55 @@ const LoginRegister: React.FC = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+    
+    // Update password validation in real-time for registration
+    if (name === 'password' && !isLogin) {
+      setPasswordValidation(validatePassword(value));
+    }
+    
     setError('');
   };
+
+  const handleEmailVerificationSuccess = () => {
+    // Switch to login mode and show success message
+    setShowEmailVerification(false);
+    setIsLogin(true);
+    setFormData({ email: formData.email, password: '', fullName: '' });
+    setError('');
+    showToast('Email verified successfully! You can now login with your credentials.', 'success');
+  };
+
+  const handleBackToRegistration = () => {
+    setShowEmailVerification(false);
+  };
+
+  const toggleFormMode = () => {
+    setIsLogin(!isLogin);
+    setError('');
+    setFormData({ email: '', password: '', fullName: '' });
+    setPasswordValidation(validatePassword(''));
+    setEmailValidationResult(null);
+    setShowEmailVerification(false);
+    setShowPasswordSuggestions(false);
+  };
+
+  // Show email verification component if needed
+  if (showEmailVerification) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 flex items-center justify-center p-4">
+        <EmailVerification
+          email={formData.email}
+          onVerificationSuccess={handleEmailVerificationSuccess}
+          onBack={handleBackToRegistration}
+        />
+      </div>
+    );
+  }
 
   const services = [
     {
@@ -249,31 +320,77 @@ const LoginRegister: React.FC = () => {
                       </div>
                     )}
 
-                    <div className="relative">
-                      <Mail className="absolute left-5 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
-                      <input
-                        type="email"
-                        name="email"
+                    {isLogin ? (
+                      // Simple email input for login
+                      <div className="relative">
+                        <Mail className="absolute left-5 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="w-full pl-14 pr-6 py-5 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
+                          placeholder="Email address"
+                          required
+                        />
+                      </div>
+                    ) : (
+                      // Enhanced email validation for registration
+                      <EmailValidationInput
                         value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full pl-14 pr-6 py-5 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
+                        onChange={(value) => setFormData({ ...formData, email: value })}
+                        onValidationChange={(_, result) => setEmailValidationResult(result)}
                         placeholder="Email address"
                         required
+                        validateOnRegistration={true}
                       />
-                    </div>
+                    )}
 
                     <div className="relative">
                       <Lock className="absolute left-5 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-400" />
                       <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className="w-full pl-14 pr-6 py-5 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
+                        onFocus={() => !isLogin && setShowPasswordSuggestions(true)}
+                        onBlur={(e) => {
+                          // Delay hiding to allow clicking on suggestions
+                          setTimeout(() => {
+                            if (!e.currentTarget.contains(document.activeElement)) {
+                              setShowPasswordSuggestions(false);
+                            }
+                          }, 200);
+                        }}
+                        className="w-full pl-14 pr-14 py-5 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 bg-gray-50/50"
                         placeholder="Password"
                         required
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="h-6 w-6" /> : <Eye className="h-6 w-6" />}
+                      </button>
+
+                      {/* Password Suggestions - Only show during registration */}
+                      {!isLogin && (
+                        <PasswordSuggestions
+                          password={formData.password}
+                          isVisible={showPasswordSuggestions}
+                          onClose={() => setShowPasswordSuggestions(false)}
+                        />
+                      )}
                     </div>
+
+                    {/* Password Strength Indicator - Only show during registration */}
+                    {!isLogin && formData.password && (
+                      <PasswordStrengthIndicator 
+                        validation={passwordValidation}
+                        showRequirements={true}
+                      />
+                    )}
 
                     <button
                       type="submit"
@@ -285,11 +402,7 @@ const LoginRegister: React.FC = () => {
 
                     <button
                       type="button"
-                      onClick={() => {
-                        setIsLogin(!isLogin);
-                        setError('');
-                        setFormData({ email: '', password: '', fullName: '' });
-                      }}
+                      onClick={toggleFormMode}
                       className="w-full text-cyan-600 hover:text-cyan-500 font-medium text-lg py-3"
                     >
                       {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}

@@ -98,4 +98,6 @@ export interface AuthContextType {
   logout: () => void;
   updateUser: (userData: Partial<User>) => Promise<{ success: boolean; message?: string; error?: string }>;
   fetchUserProfile: () => Promise<{ success: boolean; message?: string; error?: string }>;
+  sendVerificationEmail: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  verifyEmail: (email: string, code: string) => Promise<{ success: boolean; verified?: boolean; message?: string; error?: string }>;
 }

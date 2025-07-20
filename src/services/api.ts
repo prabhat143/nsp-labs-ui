@@ -170,7 +170,7 @@ export interface SampleSubmissionRequest {
     lng: number;
   };
   shrimpCategory: string;
-  shrimpSubCategory: string;
+  testTypes: string[];
   phoneNumber: string;
   emailAddress?: string;
   status: string;
